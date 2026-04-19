@@ -351,6 +351,14 @@ final class ProgressStore: ObservableObject {
         }
     }
 
+    /// Replaces the current snapshot with one loaded from an imported file and
+    /// persists it immediately so the restore survives app relaunches.
+    func applyImported(lessonProgress: [String: LessonProgress], stats: PlayerStats) {
+        self.lessonProgress = lessonProgress
+        self.stats = stats
+        save()
+    }
+
     private struct Snapshot: Codable {
         var lessonProgress: [String: LessonProgress]
         var stats: PlayerStats

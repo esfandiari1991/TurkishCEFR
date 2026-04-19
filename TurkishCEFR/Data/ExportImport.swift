@@ -58,7 +58,8 @@ enum ExportImport {
                 return
             }
             Task { @MainActor in
-                progress.apply(importedPayload: payload)
+                progress.applyImported(lessonProgress: payload.lessonProgress,
+                                       stats: payload.stats)
                 presentAlert(title: "Import complete",
                              message: "Progress restored from \(url.lastPathComponent).")
             }
@@ -73,14 +74,5 @@ enum ExportImport {
         alert.alertStyle = .informational
         alert.addButton(withTitle: "OK")
         alert.runModal()
-    }
-}
-
-extension ProgressStore {
-    /// Replace the current snapshot with an imported one.
-    @MainActor
-    func apply(importedPayload payload: ExportImport.Payload) {
-        self.lessonProgress = payload.lessonProgress
-        self.stats = payload.stats
     }
 }
