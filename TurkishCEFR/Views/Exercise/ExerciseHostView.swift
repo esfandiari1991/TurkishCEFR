@@ -59,14 +59,14 @@ struct ExerciseHostView: View {
             MultipleChoiceView(question: q,
                                tint: lesson.level.accentColor) { correctOnFirstTry in
                 award(xp: correctOnFirstTry ? XPAward.multipleChoicePerfect
-                                            : XPAward.multipleChoicePerfect / 2,
+                                            : XPAward.multipleChoiceWithRetry,
                       perfect: correctOnFirstTry)
             }
         case .fillInBlank(let q):
             FillInBlankView(question: q,
                             tint: lesson.level.accentColor) { correctOnFirstTry in
                 award(xp: correctOnFirstTry ? XPAward.fillInBlankPerfect
-                                            : XPAward.fillInBlankPerfect / 2,
+                                            : XPAward.fillInBlankWithRetry,
                       perfect: correctOnFirstTry)
             }
         }
