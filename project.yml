@@ -30,8 +30,9 @@ targets:
       - path: TurkishCEFR
         excludes:
           - "Resources/**"
-      - path: TurkishCEFR/Resources
-        type: folder
+      - path: TurkishCEFR/Resources/corpus_tr_en.json
+        buildPhase: resources
+      - path: TurkishCEFR/Resources/frequency_tr.json
         buildPhase: resources
     info:
       path: TurkishCEFR/Info.plist

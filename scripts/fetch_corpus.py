@@ -143,7 +143,7 @@ def build_frequency(tmp: Path) -> list[dict]:
                 count_i = int(count)
             except ValueError:
                 continue
-            rows.append({"word": word, "rank": idx + 1, "count": count_i})
+            rows.append({"word": word, "rank": len(rows) + 1, "count": count_i})
             if len(rows) >= MAX_WORDS:
                 break
     log(f"collected {len(rows)} frequency entries")

@@ -290,7 +290,7 @@ enum TurkishMorphology {
         case .s1: return "— "   // no 1sg imperative
         case .s2: return stem
         case .s3: return "\(stem)s\(i)n"
-        case .p1: return "\(stem)(y)\(a)l\(i)m"
+        case .p1: return "\(stem)\(endsInVowel(stem) ? "y" : "")\(a)l\(i)m"
         case .p2: return "\(stem)\(i)n\(i)z"
         case .p3: return "\(stem)s\(i)nl\(a)r"
         }
