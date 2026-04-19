@@ -23,8 +23,8 @@ struct ConfettiView: View {
             }
         }
         .allowsHitTesting(false)
-        .onChange(of: isActive) { _, new in
-            if new { burst() }
+        .onChange(of: isActive) { _, _ in
+            burst()
         }
     }
 

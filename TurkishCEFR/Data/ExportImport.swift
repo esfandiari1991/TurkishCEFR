@@ -53,8 +53,10 @@ enum ExportImport {
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .iso8601
             guard let payload = try? decoder.decode(Payload.self, from: data) else {
-                presentAlert(title: "Import failed",
-                             message: "The selected file is not a valid TurkishCEFR progress export.")
+                Task { @MainActor in
+                    presentAlert(title: "Import failed",
+                                 message: "The selected file is not a valid TurkishCEFR progress export.")
+                }
                 return
             }
             Task { @MainActor in
