@@ -90,13 +90,12 @@ private struct ConfettiPieceView: View {
             }
     }
 
-    @ViewBuilder
-    private var shape: some Shape {
+    private var shape: AnyShape {
         switch particle.shape {
-        case .rectangle: AnyShape(Rectangle())
-        case .capsule:   AnyShape(Capsule())
-        case .circle:    AnyShape(Circle())
-        case .star:      AnyShape(StarShape(points: 5))
+        case .rectangle: return AnyShape(Rectangle())
+        case .capsule:   return AnyShape(Capsule())
+        case .circle:    return AnyShape(Circle())
+        case .star:      return AnyShape(StarShape(points: 5))
         }
     }
 }

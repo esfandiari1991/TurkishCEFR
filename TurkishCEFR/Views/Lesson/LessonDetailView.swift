@@ -308,6 +308,7 @@ private struct ExerciseRow: View {
         case .flashcard(let s): return "\(s.cards.count) card\(s.cards.count == 1 ? "" : "s") · +\(XPAward.flashcardCompleted) XP"
         case .multipleChoice: return "Quick check · up to +\(XPAward.multipleChoicePerfect) XP"
         case .fillInBlank:    return "Write the missing word · up to +\(XPAward.fillInBlankPerfect) XP"
+        case .listening:      return "Listen and type · up to +\(XPAward.listeningPerfect) XP"
         }
     }
 }

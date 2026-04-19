@@ -36,7 +36,7 @@ struct ListeningExerciseView: View {
                     Circle()
                         .stroke(tint.opacity(0.35), lineWidth: 4)
                         .frame(width: 150 + wavePhase * 20, height: 150 + wavePhase * 20)
-                        .opacity(1 - wavePhase * 0.6)
+                        .opacity(Double(1.0 - wavePhase * 0.6))
                     Image(systemName: "play.fill")
                         .font(.system(size: 44, weight: .semibold))
                         .foregroundStyle(.white)
