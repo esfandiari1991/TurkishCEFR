@@ -25,4 +25,9 @@ final class CurriculumStore: ObservableObject {
         }
         return nil
     }
+
+    /// Flat list of every lesson across every level, stable-ordered by CEFR level then lesson number.
+    var allLessons: [Lesson] {
+        CEFRLevel.allCases.flatMap { lessonsByLevel[$0] ?? [] }
+    }
 }

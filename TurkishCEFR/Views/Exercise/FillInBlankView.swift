@@ -3,10 +3,12 @@ import SwiftUI
 struct FillInBlankView: View {
     let question: FillInBlankQuestion
     let tint: Color
-    let onComplete: () -> Void
+    /// Parameter = true if the user got it right on the first attempt.
+    let onComplete: (Bool) -> Void
 
     @State private var input: String = ""
     @State private var submitted: Bool = false
+    @State private var attempts: Int = 0
 
     private var isCorrect: Bool {
         input.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -60,7 +62,7 @@ struct FillInBlankView: View {
                         withAnimation { submitted = false }
                     }
                     Button {
-                        onComplete()
+                        onComplete(isCorrect && attempts == 1)
                     } label: {
                         Label("Done", systemImage: "checkmark").frame(minWidth: 120)
                     }
@@ -83,7 +85,7 @@ struct FillInBlankView: View {
 
     private func check() {
         guard !input.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+        attempts += 1
         withAnimation(.spring()) { submitted = true }
-        if isCorrect { onComplete() }
     }
 }

@@ -6,6 +6,10 @@ struct ContentView: View {
 
     @State private var selectedLevel: CEFRLevel? = .a1
     @State private var selectedLesson: Lesson?
+    @State private var showBadges: Bool = false
+    @State private var visibleLevelUp: ProgressStore.LevelUpEvent?
+    @State private var visibleXPChip: ProgressStore.XPAwardEvent?
+    @State private var visibleBadgeToast: Badge?
 
     var body: some View {
         NavigationSplitView {
@@ -33,13 +37,72 @@ struct ContentView: View {
             }
         }
         .navigationSplitViewStyle(.balanced)
+        .safeAreaInset(edge: .top, spacing: 0) {
+            HStack {
+                Spacer()
+                XPHUD(showBadgesSheet: $showBadges)
+                Spacer()
+            }
+            .padding(.top, 8)
+        }
+        .overlay(alignment: .top) { toastStack.padding(.top, 68) }
+        .sheet(isPresented: $showBadges) { BadgeWall() }
         .onChange(of: selectedLevel) { _, _ in
-            // Clear lesson selection when the user switches level.
             selectedLesson = nil
         }
         .onReceive(NotificationCenter.default.publisher(for: .resetLevelProgress)) { _ in
             if let level = selectedLevel {
                 progress.resetLevel(level, lessons: curriculum.lessons(for: level))
+            }
+        }
+        .onChange(of: progress.levelUpEvent) { _, newEvent in
+            guard let event = newEvent else { return }
+            visibleLevelUp = event
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.8) {
+                withAnimation { visibleLevelUp = nil }
+            }
+        }
+        .onChange(of: progress.lastXPAward) { _, newEvent in
+            guard let event = newEvent else { return }
+            visibleXPChip = event
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) {
+                withAnimation { visibleXPChip = nil }
+            }
+        }
+        .onChange(of: progress.stats.pendingBadgeToasts) { _, _ in
+            popNextBadgeIfNeeded()
+        }
+        .onAppear {
+            _ = progress.checkBadges(allLessons: curriculum.allLessons)
+            popNextBadgeIfNeeded()
+        }
+    }
+
+    private func popNextBadgeIfNeeded() {
+        guard visibleBadgeToast == nil else { return }
+        if let next = progress.consumeBadgeToast() {
+            visibleBadgeToast = next
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                withAnimation { visibleBadgeToast = nil }
+                popNextBadgeIfNeeded()
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var toastStack: some View {
+        VStack(spacing: 10) {
+            if let lv = visibleLevelUp {
+                LevelUpToast(event: lv)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
+            if let xp = visibleXPChip {
+                XPChip(event: xp)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
+            if let badge = visibleBadgeToast {
+                BadgeToast(badge: badge)
+                    .transition(.move(edge: .top).combined(with: .opacity))
             }
         }
     }
