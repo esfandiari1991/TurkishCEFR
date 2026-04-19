@@ -6,8 +6,12 @@ struct SettingsView: View {
     @AppStorage("speechRate") private var speechRate: Double = 0.48
     @AppStorage("preferredAppearance") private var appearance: String = "system"
     @AppStorage(Speech.voiceDefaultsKey) private var voiceIdentifier: String = ""
+    @AppStorage("fontScale") private var fontScale: Double = 1.0
+    @AppStorage("confettiEnabled") private var confettiEnabled: Bool = true
+    @AppStorage("reduceMotion") private var reduceMotion: Bool = false
 
     @State private var voices: [AVSpeechSynthesisVoice] = []
+    @State private var confirmingReset: Bool = false
 
     var body: some View {
         TabView {
@@ -16,7 +20,7 @@ struct SettingsView: View {
             badgesTab.tabItem  { Label("Badges", systemImage: "rosette") }
             dataTab.tabItem    { Label("Data", systemImage: "tray.full") }
         }
-        .frame(width: 640, height: 440)
+        .frame(width: 680, height: 520)
         .onAppear(perform: refreshVoices)
         .onChange(of: speechRate) { _, new in
             UserDefaults.standard.set(new, forKey: Speech.rateDefaultsKey)
@@ -34,18 +38,49 @@ struct SettingsView: View {
                     Text("Dark").tag("dark")
                 }
                 .pickerStyle(.segmented)
+
+                HStack {
+                    Text("Font size")
+                    Slider(value: $fontScale, in: 0.85...1.3, step: 0.05)
+                    Text(String(format: "%.0f%%", fontScale * 100))
+                        .monospacedDigit()
+                        .frame(width: 56)
+                }
+
+                Toggle(isOn: $confettiEnabled) {
+                    Label("Celebrate level ups with confetti", systemImage: "sparkles")
+                }
+                Toggle(isOn: $reduceMotion) {
+                    Label("Reduce motion (gentler animations)", systemImage: "wind")
+                }
             }
             Section("Pronunciation") {
                 HStack {
                     Text("Speech rate")
                     Slider(value: $speechRate, in: 0.3...0.7)
-                    Text(String(format: "%.2f", speechRate))
+                    Text(String(format: "%.2fx", speechRate / 0.5))
                         .monospacedDigit()
-                        .frame(width: 48)
+                        .frame(width: 56)
                 }
                 Button("Test voice") {
                     Speech.shared.speak("Merhaba, ben İstanbul'dan konuşuyorum.", rate: Float(speechRate))
                 }
+            }
+            Section("Preview") {
+                HStack(spacing: 20) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Kitap").font(.system(size: 18 * fontScale, weight: .semibold))
+                        Text("book — a collection of written pages.")
+                            .font(.system(size: 13 * fontScale))
+                            .foregroundStyle(.secondary)
+                        Text("“Yeni bir kitap alıyorum.” — I'm buying a new book.")
+                            .font(.system(size: 11 * fontScale))
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                }
+                .padding(12)
+                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 10))
             }
         }
         .padding(20)
@@ -102,6 +137,24 @@ struct SettingsView: View {
                     }
                 }
             }
+            Section("Test phrases") {
+                ForEach([
+                    "Merhaba! Nasılsınız?",
+                    "İstanbul Boğazı çok güzel.",
+                    "Türkçe öğrenmek keyifli."
+                ], id: \.self) { phrase in
+                    HStack {
+                        Text(phrase).font(.callout)
+                        Spacer()
+                        Button {
+                            Speech.shared.speak(phrase, rate: Float(speechRate))
+                        } label: {
+                            Image(systemName: "play.circle.fill")
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
         }
         .padding(20)
     }
@@ -147,7 +200,7 @@ struct SettingsView: View {
 
     private var dataTab: some View {
         Form {
-            Section("Data") {
+            Section("Snapshot") {
                 HStack {
                     Label("Streak", systemImage: "flame.fill").foregroundStyle(.orange)
                     Spacer()
@@ -169,11 +222,53 @@ struct SettingsView: View {
                         .font(.callout.monospacedDigit())
                         .foregroundStyle(.secondary)
                 }
+                HStack {
+                    Label("Accuracy", systemImage: "target")
+                    Spacer()
+                    Text("\(progress.stats.accuracyPercent)%  ·  \(progress.stats.exercisePerfectCount)/\(progress.stats.exerciseAttempts)")
+                        .font(.callout.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+                HStack {
+                    Label("Study time", systemImage: "clock.fill")
+                    Spacer()
+                    Text(progress.stats.humanStudyTime)
+                        .font(.callout.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Section("Export / Import") {
+                HStack(spacing: 12) {
+                    Button {
+                        ExportImport.exportToFile(progress: progress)
+                    } label: {
+                        Label("Export progress…", systemImage: "square.and.arrow.up")
+                    }
+                    Button {
+                        ExportImport.importFromFile(progress: progress)
+                    } label: {
+                        Label("Import progress…", systemImage: "square.and.arrow.down")
+                    }
+                }
+                Text("Back up your XP, streak, badges, and lesson completion to a JSON file, or restore from one.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+
+            Section("Danger zone") {
                 Button(role: .destructive) {
-                    progress.resetEverything()
+                    confirmingReset = true
                 } label: {
-                    Label("Reset All Progress, XP, Streak and Badges",
+                    Label("Reset all progress, XP, streak and badges",
                           systemImage: "arrow.counterclockwise")
+                }
+                .alert("Reset everything?", isPresented: $confirmingReset) {
+                    Button("Cancel", role: .cancel) { }
+                    Button("Reset", role: .destructive) {
+                        progress.resetEverything()
+                    }
+                } message: {
+                    Text("This will clear your XP, level, daily streak, badges, and every lesson's completion status. This action cannot be undone.")
                 }
             }
         }
