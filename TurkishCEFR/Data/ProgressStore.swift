@@ -69,7 +69,7 @@ final class ProgressStore: ObservableObject {
 
     // MARK: - Vocabulary
 
-    func toggleMastered(lessonID: String, word: String) {
+    func toggleMastered(lessonID: String, word: String, translation: String? = nil) {
         var p = self[lessonID]
         let wasMastered = p.vocabularyMastered.contains(word)
         if wasMastered {
@@ -83,6 +83,9 @@ final class ProgressStore: ObservableObject {
             awardXP(XPAward.wordMastered, reason: "New word mastered")
             registerStudySession(awardXP: false)
             checkBadges()
+            if let translation, !translation.isEmpty {
+                SRSStore.shared.enroll(front: word, back: translation, origin: "lesson:\(lessonID)")
+            }
         }
     }
 

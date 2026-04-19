@@ -17,6 +17,9 @@ settings:
     DEAD_CODE_STRIPPING: YES
     CLANG_ENABLE_MODULES: YES
     SWIFT_EMIT_LOC_STRINGS: YES
+    ARCHS: "$(ARCHS_STANDARD)"
+    ONLY_ACTIVE_ARCH: NO
+    VALID_ARCHS: "arm64 x86_64"
 
 targets:
   TurkishCEFR:
@@ -25,6 +28,11 @@ targets:
     deploymentTarget: "14.0"
     sources:
       - path: TurkishCEFR
+        excludes:
+          - "Resources/**"
+      - path: TurkishCEFR/Resources
+        type: folder
+        buildPhase: resources
     info:
       path: TurkishCEFR/Info.plist
     settings:

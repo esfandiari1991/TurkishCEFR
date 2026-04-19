@@ -11,6 +11,11 @@ struct ContentView: View {
     @State private var showBadges: Bool = false
     @State private var showSearch: Bool = false
     @State private var showStats: Bool = false
+    @State private var showDictionary: Bool = false
+    @State private var showConjugator: Bool = false
+    @State private var showReview: Bool = false
+    @State private var showDialogues: Bool = false
+    @State private var showDailyChallenge: Bool = false
     @State private var confettiTrigger: Bool = false
     @State private var visibleLevelUp: ProgressStore.LevelUpEvent?
     @State private var visibleXPChip: ProgressStore.XPAwardEvent?
@@ -52,9 +57,49 @@ struct ContentView: View {
                 .help("Search lessons (⌘F)")
                 .keyboardShortcut("f", modifiers: .command)
 
+                Button { showDictionary = true } label: {
+                    Label("Dictionary", systemImage: "character.book.closed.fill")
+                        .labelStyle(.iconOnly)
+                }
+                .buttonStyle(.borderless)
+                .help("Offline dictionary (⌘K)")
+                .keyboardShortcut("k", modifiers: .command)
+
+                Button { showConjugator = true } label: {
+                    Label("Conjugator", systemImage: "wand.and.stars")
+                        .labelStyle(.iconOnly)
+                }
+                .buttonStyle(.borderless)
+                .help("Turkish verb conjugator (⌘J)")
+                .keyboardShortcut("j", modifiers: .command)
+
                 Spacer()
                 XPHUD(showBadgesSheet: $showBadges)
                 Spacer()
+
+                Button { showDailyChallenge = true } label: {
+                    Label("Daily Challenge", systemImage: "flame.fill")
+                        .labelStyle(.iconOnly)
+                }
+                .buttonStyle(.borderless)
+                .help("Daily challenge (⌘T)")
+                .keyboardShortcut("t", modifiers: .command)
+
+                Button { showReview = true } label: {
+                    Label("Review", systemImage: "brain.head.profile")
+                        .labelStyle(.iconOnly)
+                }
+                .buttonStyle(.borderless)
+                .help("Spaced-repetition review (⌘R)")
+                .keyboardShortcut("r", modifiers: .command)
+
+                Button { showDialogues = true } label: {
+                    Label("Phrasebook", systemImage: "bubble.left.and.bubble.right.fill")
+                        .labelStyle(.iconOnly)
+                }
+                .buttonStyle(.borderless)
+                .help("Situational dialogues (⌘P)")
+                .keyboardShortcut("p", modifiers: .command)
 
                 Button { showStats = true } label: {
                     Label("Stats", systemImage: "chart.bar.xaxis.ascending")
@@ -81,6 +126,11 @@ struct ContentView: View {
                              selectedLesson: $selectedLesson)
         }
         .sheet(isPresented: $showStats) { StatsDashboardView() }
+        .sheet(isPresented: $showDictionary) { DictionaryView() }
+        .sheet(isPresented: $showConjugator) { ConjugatorView() }
+        .sheet(isPresented: $showReview) { ReviewView() }
+        .sheet(isPresented: $showDialogues) { DialoguesView() }
+        .sheet(isPresented: $showDailyChallenge) { DailyChallengeView() }
         .onChange(of: selectedLevel) { _, _ in
             selectedLesson = nil
         }

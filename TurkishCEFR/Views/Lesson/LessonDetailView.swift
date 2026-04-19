@@ -124,7 +124,9 @@ struct VocabularySection: View {
                     VocabCard(item: item,
                               mastered: progress[lesson.id].vocabularyMastered.contains(item.turkish),
                               tint: lesson.level.accentColor) {
-                        progress.toggleMastered(lessonID: lesson.id, word: item.turkish)
+                        progress.toggleMastered(lessonID: lesson.id,
+                                                word: item.turkish,
+                                                translation: item.english)
                     }
                 }
             }
