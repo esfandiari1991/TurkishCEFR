@@ -131,6 +131,9 @@ final class ProgressStore: ObservableObject {
             stats.correctInARow = 0
         }
 
+        stats.exerciseAttempts += 1
+        if perfect { stats.exercisePerfectCount += 1 }
+
         let amount = alreadyDone ? max(2, xp / 4) : xp
         awardXP(amount, reason: "Exercise completed")
         registerStudySession(awardXP: false)
@@ -189,6 +192,10 @@ final class ProgressStore: ObservableObject {
         stats.totalXP += amount
         let newLevel = stats.level
         lastXPAward = XPAwardEvent(amount: amount, reason: reason)
+        // Track the activity heatmap and approximate study time.
+        let key = ActivityDateKey.key()
+        stats.dailyActivity[key, default: 0] += amount
+        stats.studySeconds += 90
         if newLevel > oldLevel {
             levelUpEvent = LevelUpEvent(oldLevel: oldLevel, newLevel: newLevel)
             stats.acknowledgedLevel = newLevel
@@ -215,6 +222,7 @@ final class ProgressStore: ObservableObject {
         }
         stats.lastStudyDate = today
         stats.longestStreak = max(stats.longestStreak, stats.streakDays)
+        stats.studyDayCount += 1
         if awardXP { self.awardXP(5, reason: "Daily check-in") }
         save()
         checkBadges()

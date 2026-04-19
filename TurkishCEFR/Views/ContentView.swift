@@ -3,10 +3,15 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject private var curriculum: CurriculumStore
     @EnvironmentObject private var progress: ProgressStore
+    @AppStorage("confettiEnabled") private var confettiEnabled: Bool = true
+    @AppStorage("fontScale") private var fontScale: Double = 1.0
 
     @State private var selectedLevel: CEFRLevel? = .a1
     @State private var selectedLesson: Lesson?
     @State private var showBadges: Bool = false
+    @State private var showSearch: Bool = false
+    @State private var showStats: Bool = false
+    @State private var confettiTrigger: Bool = false
     @State private var visibleLevelUp: ProgressStore.LevelUpEvent?
     @State private var visibleXPChip: ProgressStore.XPAwardEvent?
     @State private var visibleBadgeToast: Badge?
@@ -38,15 +43,44 @@ struct ContentView: View {
         }
         .navigationSplitViewStyle(.balanced)
         .safeAreaInset(edge: .top, spacing: 0) {
-            HStack {
+            HStack(spacing: 10) {
+                Button { showSearch = true } label: {
+                    Label("Search", systemImage: "magnifyingglass")
+                        .labelStyle(.iconOnly)
+                }
+                .buttonStyle(.borderless)
+                .help("Search lessons (⌘F)")
+                .keyboardShortcut("f", modifiers: .command)
+
                 Spacer()
                 XPHUD(showBadgesSheet: $showBadges)
                 Spacer()
+
+                Button { showStats = true } label: {
+                    Label("Stats", systemImage: "chart.bar.xaxis.ascending")
+                        .labelStyle(.iconOnly)
+                }
+                .buttonStyle(.borderless)
+                .help("Open stats dashboard (⌘D)")
+                .keyboardShortcut("d", modifiers: .command)
             }
+            .padding(.horizontal, 16)
             .padding(.top, 8)
         }
         .overlay(alignment: .top) { toastStack.padding(.top, 68) }
+        .overlay {
+            if confettiEnabled {
+                ConfettiView(isActive: confettiTrigger)
+                    .allowsHitTesting(false)
+            }
+        }
+        .environment(\.sizeCategory, sizeCategory(for: fontScale))
         .sheet(isPresented: $showBadges) { BadgeWall() }
+        .sheet(isPresented: $showSearch) {
+            LessonSearchView(selectedLevel: $selectedLevel,
+                             selectedLesson: $selectedLesson)
+        }
+        .sheet(isPresented: $showStats) { StatsDashboardView() }
         .onChange(of: selectedLevel) { _, _ in
             selectedLesson = nil
         }
@@ -58,6 +92,9 @@ struct ContentView: View {
         .onChange(of: progress.levelUpEvent) { _, newEvent in
             guard let event = newEvent else { return }
             visibleLevelUp = event
+            if confettiEnabled {
+                confettiTrigger.toggle()
+            }
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.8) {
                 withAnimation { visibleLevelUp = nil }
             }
@@ -75,6 +112,17 @@ struct ContentView: View {
         .onAppear {
             _ = progress.checkBadges(allLessons: curriculum.allLessons)
             popNextBadgeIfNeeded()
+        }
+    }
+
+    private func sizeCategory(for scale: Double) -> ContentSizeCategory {
+        switch scale {
+        case ..<0.9:   return .small
+        case ..<0.95:  return .medium
+        case ..<1.05:  return .large
+        case ..<1.15:  return .extraLarge
+        case ..<1.25:  return .extraExtraLarge
+        default:       return .extraExtraExtraLarge
         }
     }
 

@@ -69,6 +69,13 @@ struct ExerciseHostView: View {
                                             : XPAward.fillInBlankWithRetry,
                       perfect: correctOnFirstTry)
             }
+        case .listening(let prompt):
+            ListeningExerciseView(prompt: prompt,
+                                  tint: lesson.level.accentColor) { correctOnFirstTry in
+                award(xp: correctOnFirstTry ? XPAward.listeningPerfect
+                                            : XPAward.listeningWithRetry,
+                      perfect: correctOnFirstTry)
+            }
         }
     }
 
