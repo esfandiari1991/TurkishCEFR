@@ -24,12 +24,14 @@ struct Dialogue: Identifiable, Hashable {
     }
 }
 
-private typealias L = Dialogue.Line
-
 @inline(__always)
-private func a(_ tr: String, _ en: String) -> L { L(speaker: .a, tr: tr, en: en) }
+private func a(_ tr: String, _ en: String) -> Dialogue.Line {
+    Dialogue.Line(speaker: .a, tr: tr, en: en)
+}
 @inline(__always)
-private func b(_ tr: String, _ en: String) -> L { L(speaker: .b, tr: tr, en: en) }
+private func b(_ tr: String, _ en: String) -> Dialogue.Line {
+    Dialogue.Line(speaker: .b, tr: tr, en: en)
+}
 
 enum DialoguesContent {
     static let all: [Dialogue] = [
