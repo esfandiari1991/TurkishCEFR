@@ -112,12 +112,16 @@ struct DailyChallengeView: View {
     private func check(against p: CorpusStore.SentencePair) {
         let given = normalize(answer)
         let want = normalize(p.en)
+        if given.isEmpty {
+            outcome = .tryAgain
+            return
+        }
         if given == want {
             outcome = .correct
             UserDefaults.standard.set(ActivityDateKey.key(), forKey: "dailyChallenge.last")
             progress.awardXP(30, reason: "Daily challenge")
             SRSStore.shared.enroll(front: p.tr, back: p.en, origin: "daily")
-        } else if given.contains(want) || want.contains(given) {
+        } else if given.count >= 3 && (given.contains(want) || want.contains(given)) {
             outcome = .close
         } else {
             outcome = .tryAgain

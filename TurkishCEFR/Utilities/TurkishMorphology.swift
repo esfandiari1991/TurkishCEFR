@@ -240,13 +240,15 @@ enum TurkishMorphology {
         let a: Character = harmony2(for: stem)
         let root = "\(stem)\(bridge)\(a)c\(a)k"
         // k → ğ before vowel-initial suffixes in 1sg/1pl.
+        let i = harmony4(for: root)
+        let ar = harmony2(for: root)
         switch person {
-        case .s1: return String(root.dropLast()) + "ğım"
-        case .s2: return root + "sın"
+        case .s1: return String(root.dropLast()) + "ğ\(i)m"
+        case .s2: return root + "s\(i)n"
         case .s3: return root
-        case .p1: return String(root.dropLast()) + "ğız"
-        case .p2: return root + "sınız"
-        case .p3: return root + "lar"
+        case .p1: return String(root.dropLast()) + "ğ\(i)z"
+        case .p2: return root + "s\(i)n\(i)z"
+        case .p3: return root + "l\(ar)r"
         }
     }
 

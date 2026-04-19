@@ -94,10 +94,11 @@ final class CorpusStore: ObservableObject {
     func dailySentence(for date: Date = .init()) -> SentencePair? {
         guard !pairs.isEmpty else { return nil }
         let key = ActivityDateKey.key(for: date)
-        var hasher = Hasher()
-        hasher.combine(key)
-        let h = abs(hasher.finalize())
-        return pairs[h % pairs.count]
+        // Swift's Hasher uses a process-random seed, so we use a stable
+        // djb2 hash to guarantee the same daily sentence across relaunches.
+        var h: UInt64 = 5381
+        for byte in key.utf8 { h = h &* 33 &+ UInt64(byte) }
+        return pairs[Int(h % UInt64(pairs.count))]
     }
 
     /// Random sentence bucketed by length so A1 drills stay short while C1/C2
