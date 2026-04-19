@@ -231,7 +231,7 @@ final class ProgressStore: ObservableObject {
                 stats.pendingBadgeToasts.append(badge.id)
                 newlyUnlocked.append(badge)
                 if badge.xpReward > 0 {
-                    stats.totalXP += badge.xpReward
+                    awardXP(badge.xpReward, reason: "Badge: \(badge.title)")
                 }
             }
         }
@@ -323,6 +323,9 @@ final class ProgressStore: ObservableObject {
             if let oldData = UserDefaults.standard.data(forKey: "TurkishCEFR.progress.v1"),
                let legacy = try? JSONDecoder().decode(LegacySnapshot.self, from: oldData) {
                 self.lessonProgress = legacy.lessonProgress
+                self.stats.streakDays = legacy.streakDays
+                self.stats.longestStreak = legacy.streakDays
+                self.stats.lastStudyDate = legacy.lastOpenedDate
                 save()
             }
             return
