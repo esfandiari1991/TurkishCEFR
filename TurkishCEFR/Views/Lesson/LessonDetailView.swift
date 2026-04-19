@@ -10,15 +10,16 @@ struct LessonDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
                 header
+                progressSection
 
                 if !lesson.vocabulary.isEmpty {
                     VocabularySection(lesson: lesson)
                 }
                 if !lesson.grammar.isEmpty {
-                    GrammarSection(grammar: lesson.grammar, tint: lesson.level.accentColor)
+                    GrammarSection(lesson: lesson, grammar: lesson.grammar, tint: lesson.level.accentColor)
                 }
                 if !lesson.phrases.isEmpty {
-                    PhrasesSection(phrases: lesson.phrases, tint: lesson.level.accentColor)
+                    PhrasesSection(lesson: lesson, phrases: lesson.phrases, tint: lesson.level.accentColor)
                 }
                 if !lesson.exercises.isEmpty {
                     ExerciseSection(lesson: lesson, onOpen: { selectedExercise = $0 })
@@ -36,6 +37,9 @@ struct LessonDetailView: View {
         .sheet(item: $selectedExercise) { ex in
             ExerciseHostView(lesson: lesson, exercise: ex)
                 .frame(minWidth: 560, minHeight: 480)
+        }
+        .onChange(of: progress.lessonProgress[lesson.id]) { _, _ in
+            progress.maybeMarkLessonCompleted(lesson)
         }
     }
 
@@ -74,6 +78,14 @@ struct LessonDetailView: View {
         }
     }
 
+    private var progressSection: some View {
+        SectionCard(title: "Progress · İlerleme",
+                    systemImage: "chart.bar.xaxis",
+                    tint: lesson.level.accentColor) {
+            CategoryProgressGrid(lesson: lesson, tint: lesson.level.accentColor)
+        }
+    }
+
     private var completeButton: some View {
         HStack {
             Spacer()
@@ -93,12 +105,14 @@ struct LessonDetailView: View {
     }
 }
 
+// MARK: - Vocabulary
+
 struct VocabularySection: View {
     @EnvironmentObject private var progress: ProgressStore
     let lesson: Lesson
 
     private let columns = [
-        GridItem(.adaptive(minimum: 240, maximum: 320), spacing: 12)
+        GridItem(.adaptive(minimum: 260, maximum: 340), spacing: 12)
     ]
 
     var body: some View {
@@ -118,50 +132,10 @@ struct VocabularySection: View {
     }
 }
 
-struct VocabCard: View {
-    let item: VocabularyItem
-    let mastered: Bool
-    let tint: Color
-    let onToggle: () -> Void
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 10) {
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 8) {
-                    Text(item.turkish)
-                        .font(.system(size: 15, weight: .semibold))
-                    Text(item.partOfSpeech.label)
-                        .font(.caption2)
-                        .padding(.horizontal, 6).padding(.vertical, 1)
-                        .background(tint.opacity(0.15), in: Capsule())
-                        .foregroundStyle(tint)
-                }
-                Text(item.english)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                if let tr = item.exampleTR, let en = item.exampleEN {
-                    Text("“\(tr)” — \(en)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .padding(.top, 2)
-                }
-            }
-            Spacer()
-            Button(action: onToggle) {
-                Image(systemName: mastered ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(mastered ? tint : .secondary)
-                    .font(.title3)
-            }
-            .buttonStyle(.plain)
-            .help(mastered ? "Mastered — click to unset" : "Mark as mastered")
-        }
-        .padding(12)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(.white.opacity(0.06)))
-    }
-}
+// MARK: - Grammar
 
 struct GrammarSection: View {
+    let lesson: Lesson
     let grammar: [GrammarNote]
     let tint: Color
 
@@ -169,43 +143,20 @@ struct GrammarSection: View {
         SectionCard(title: "Grammar · Dilbilgisi",
                     systemImage: "text.alignleft",
                     tint: tint) {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 12) {
                 ForEach(grammar) { note in
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(note.title)
-                            .font(.headline)
-                        Text(note.explanation)
-                            .font(.body)
-                            .foregroundStyle(.primary.opacity(0.85))
-                        if !note.examples.isEmpty {
-                            VStack(alignment: .leading, spacing: 6) {
-                                ForEach(note.examples, id: \.self) { ex in
-                                    HStack(alignment: .top, spacing: 10) {
-                                        Image(systemName: "arrow.right")
-                                            .font(.caption)
-                                            .foregroundStyle(tint)
-                                            .padding(.top, 4)
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text(ex.turkish).font(.callout.weight(.medium))
-                                            Text(ex.english).font(.caption).foregroundStyle(.secondary)
-                                        }
-                                    }
-                                }
-                            }
-                            .padding(12)
-                            .background(tint.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
-                        }
-                    }
-                    if note.id != grammar.last?.id {
-                        Divider()
-                    }
+                    GrammarDetailView(lessonID: lesson.id, note: note, tint: tint)
                 }
             }
         }
     }
 }
 
+// MARK: - Phrases
+
 struct PhrasesSection: View {
+    @EnvironmentObject private var progress: ProgressStore
+    let lesson: Lesson
     let phrases: [Phrase]
     let tint: Color
 
@@ -215,24 +166,47 @@ struct PhrasesSection: View {
                     tint: tint) {
             VStack(alignment: .leading, spacing: 10) {
                 ForEach(phrases, id: \.self) { p in
-                    HStack(alignment: .top, spacing: 12) {
-                        PronunciationButton(text: p.turkish, tint: tint)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(p.turkish).font(.system(size: 15, weight: .medium))
-                            Text(p.english).font(.subheadline).foregroundStyle(.secondary)
-                            if let note = p.note {
-                                Text(note).font(.caption).foregroundStyle(.secondary)
-                            }
-                        }
-                        Spacer()
-                    }
-                    .padding(10)
-                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 10))
+                    PhraseRow(lessonID: lesson.id, phrase: p, tint: tint)
                 }
             }
         }
     }
 }
+
+private struct PhraseRow: View {
+    @EnvironmentObject private var progress: ProgressStore
+    let lessonID: String
+    let phrase: Phrase
+    let tint: Color
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            PronunciationButton(text: phrase.turkish, tint: tint)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(phrase.turkish).font(.system(size: 15, weight: .medium))
+                Text(phrase.english).font(.subheadline).foregroundStyle(.secondary)
+                if let note = phrase.note {
+                    Text(note).font(.caption).foregroundStyle(.secondary)
+                }
+            }
+            Spacer()
+            let studied = progress[lessonID].phrasesStudied.contains(phrase.turkish)
+            Button {
+                progress.markPhraseStudied(lessonID: lessonID, phrase: phrase.turkish)
+            } label: {
+                Image(systemName: studied ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(studied ? tint : .secondary)
+                    .font(.title3)
+            }
+            .buttonStyle(.plain)
+            .help(studied ? "Studied" : "Mark as studied")
+        }
+        .padding(10)
+        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 10))
+    }
+}
+
+// MARK: - Exercises
 
 struct ExerciseSection: View {
     @EnvironmentObject private var progress: ProgressStore
@@ -243,43 +217,110 @@ struct ExerciseSection: View {
         SectionCard(title: "Exercises · Alıştırmalar",
                     systemImage: "checklist",
                     tint: lesson.level.accentColor) {
-            VStack(alignment: .leading, spacing: 10) {
-                ForEach(lesson.exercises, id: \.id) { ex in
-                    Button { onOpen(ex) } label: {
-                        HStack(spacing: 12) {
-                            Image(systemName: ex.systemImage)
-                                .font(.title3)
-                                .foregroundStyle(lesson.level.accentColor)
-                                .frame(width: 32, height: 32)
-                                .background(lesson.level.accentColor.opacity(0.12),
-                                            in: RoundedRectangle(cornerRadius: 8))
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(ex.title).font(.headline)
-                                Text(subtitle(for: ex)).font(.caption).foregroundStyle(.secondary)
-                            }
-                            Spacer()
-                            if progress[lesson.id].exercisesCompleted.contains(ex.id) {
-                                Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
-                            }
-                            Image(systemName: "chevron.right").foregroundStyle(.secondary)
-                        }
-                        .padding(12)
-                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Sırayla çöz: Öğren → Pratik → Sınav. Her adım bir öncekinin tamamlanmasıyla açılır.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.bottom, 4)
+                ForEach(Array(orderedExercises.enumerated()), id: \.element.id) { idx, ex in
+                    ExerciseRow(
+                        exercise: ex,
+                        index: idx,
+                        tint: lesson.level.accentColor,
+                        completed: progress[lesson.id].exercisesCompleted.contains(ex.id),
+                        locked: isLocked(index: idx)
+                    ) {
+                        guard !isLocked(index: idx) else { return }
+                        onOpen(ex)
                     }
-                    .buttonStyle(.plain)
                 }
             }
         }
     }
 
-    private func subtitle(for ex: Exercise) -> String {
-        switch ex {
-        case .flashcard(let s): return "\(s.cards.count) card\(s.cards.count == 1 ? "" : "s")"
-        case .multipleChoice: return "Quick check"
-        case .fillInBlank: return "Write the missing word"
+    private var orderedExercises: [Exercise] {
+        lesson.exercises.sorted { lhs, rhs in orderRank(lhs) < orderRank(rhs) }
+    }
+
+    private func orderRank(_ e: Exercise) -> Int {
+        switch e {
+        case .flashcard: return 0
+        case .multipleChoice: return 1
+        case .fillInBlank: return 2
+        }
+    }
+
+    private func isLocked(index: Int) -> Bool {
+        guard index > 0 else { return false }
+        let previous = orderedExercises[index - 1]
+        return !progress[lesson.id].exercisesCompleted.contains(previous.id)
+    }
+}
+
+private struct ExerciseRow: View {
+    let exercise: Exercise
+    let index: Int
+    let tint: Color
+    let completed: Bool
+    let locked: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(tint.opacity(locked ? 0.08 : 0.18))
+                        .frame(width: 36, height: 36)
+                    Image(systemName: locked ? "lock.fill" : exercise.systemImage)
+                        .foregroundStyle(locked ? .secondary : tint)
+                        .font(.title3)
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 6) {
+                        Text(stepLabel).font(.caption.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                        Text(exercise.title).font(.headline)
+                    }
+                    Text(locked ? "Previous step required" : subtitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                if completed {
+                    Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                }
+                Image(systemName: "chevron.right").foregroundStyle(.secondary)
+            }
+            .padding(12)
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+            .overlay(RoundedRectangle(cornerRadius: 12)
+                .stroke(locked ? Color.secondary.opacity(0.3) : Color.clear, lineWidth: 1))
+            .opacity(locked ? 0.7 : 1)
+        }
+        .buttonStyle(.plain)
+        .disabled(locked)
+    }
+
+    private var stepLabel: String {
+        switch index {
+        case 0: return "ADIM 1 · ÖĞREN"
+        case 1: return "ADIM 2 · PRATİK"
+        case 2: return "ADIM 3 · SINAV"
+        default: return "ADIM \(index + 1)"
+        }
+    }
+
+    private var subtitle: String {
+        switch exercise {
+        case .flashcard(let s): return "\(s.cards.count) card\(s.cards.count == 1 ? "" : "s") · +\(XPAward.flashcardCompleted) XP"
+        case .multipleChoice: return "Quick check · up to +\(XPAward.multipleChoicePerfect) XP"
+        case .fillInBlank:    return "Write the missing word · up to +\(XPAward.fillInBlankPerfect) XP"
         }
     }
 }
+
+// MARK: - SectionCard
 
 struct SectionCard<Content: View>: View {
     let title: String

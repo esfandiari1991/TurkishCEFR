@@ -3,10 +3,13 @@ import SwiftUI
 struct MultipleChoiceView: View {
     let question: MultipleChoiceQuestion
     let tint: Color
-    let onComplete: () -> Void
+    /// Called once when the player finishes. Parameter = true if they got it
+    /// right on the first attempt (no "Try Again").
+    let onComplete: (Bool) -> Void
 
     @State private var selected: Int?
     @State private var submitted: Bool = false
+    @State private var attempts: Int = 0
 
     private var isCorrect: Bool { selected == question.correctIndex }
 
@@ -46,7 +49,7 @@ struct MultipleChoiceView: View {
                         withAnimation { submitted = false }
                     }
                     Button {
-                        onComplete()
+                        onComplete(isCorrect && attempts == 1)
                     } label: {
                         Label("Done", systemImage: "checkmark")
                             .frame(minWidth: 120)
@@ -56,8 +59,8 @@ struct MultipleChoiceView: View {
                 } else {
                     Button {
                         guard selected != nil else { return }
+                        attempts += 1
                         withAnimation(.spring()) { submitted = true }
-                        if isCorrect { onComplete() }
                     } label: {
                         Label("Check", systemImage: "checkmark.circle")
                             .frame(minWidth: 120)
@@ -144,7 +147,7 @@ struct ResultBanner: View {
             HStack(spacing: 8) {
                 Image(systemName: isCorrect ? "star.circle.fill" : "info.circle.fill")
                     .foregroundStyle(isCorrect ? .green : .orange)
-                Text(isCorrect ? "Correct!" : "Not quite")
+                Text(isCorrect ? "Harika!" : "Tekrar dene")
                     .font(.headline)
             }
             if let e = explanation {

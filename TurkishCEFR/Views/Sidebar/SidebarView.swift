@@ -29,7 +29,7 @@ struct SidebarView: View {
         .listStyle(.sidebar)
         .navigationTitle("TurkishCEFR")
         .safeAreaInset(edge: .bottom) {
-            BrandFooter()
+            SidebarFooter()
         }
     }
 }
@@ -72,19 +72,41 @@ private struct LevelRow: View {
     }
 }
 
-private struct BrandFooter: View {
+private struct SidebarFooter: View {
+    @EnvironmentObject private var progress: ProgressStore
+
     var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "star.circle.fill")
-                .foregroundStyle(.tint)
-            Text("TurkishCEFR")
-                .font(.callout.weight(.semibold))
-            Spacer()
-            Text("v1.0")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+        VStack(spacing: 6) {
+            HStack(spacing: 10) {
+                HStack(spacing: 4) {
+                    Image(systemName: "bolt.fill").foregroundStyle(.yellow)
+                    Text("Lv \(progress.stats.level)")
+                        .font(.caption.monospacedDigit().weight(.semibold))
+                }
+                HStack(spacing: 4) {
+                    Image(systemName: "flame.fill")
+                        .foregroundStyle(progress.stats.streakDays > 0 ? .orange : .secondary)
+                    Text("\(progress.stats.streakDays)d")
+                        .font(.caption.monospacedDigit())
+                }
+                HStack(spacing: 4) {
+                    Image(systemName: "rosette").foregroundStyle(.pink)
+                    Text("\(progress.stats.unlockedBadges.count)")
+                        .font(.caption.monospacedDigit())
+                }
+                Spacer()
+                Text("\(progress.stats.totalXP) XP")
+                    .font(.caption.monospacedDigit().weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+            HStack(spacing: 6) {
+                Image(systemName: "star.circle.fill").foregroundStyle(.tint)
+                Text("TurkishCEFR").font(.caption.weight(.semibold))
+                Spacer()
+                Text("v1.1").font(.caption2).foregroundStyle(.secondary)
+            }
         }
-        .padding(12)
+        .padding(10)
         .background(.thinMaterial)
     }
 }

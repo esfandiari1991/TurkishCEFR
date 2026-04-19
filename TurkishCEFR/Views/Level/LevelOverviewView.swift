@@ -14,6 +14,7 @@ struct LevelOverviewView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
                 header
+                categoryProgress
                 stats
                 LessonGrid(lessons: lessons, onSelect: { selectedLesson = $0 })
             }
@@ -51,6 +52,19 @@ struct LevelOverviewView: View {
             ProgressRing(value: completion, tint: level.accentColor)
                 .frame(width: 96, height: 96)
         }
+    }
+
+    private var categoryProgress: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                Image(systemName: "chart.bar.xaxis").foregroundStyle(level.accentColor)
+                Text("Kategoriler · Progress by category").font(.title3.weight(.semibold))
+            }
+            LevelCategoryProgressGrid(lessons: lessons, tint: level.accentColor)
+        }
+        .padding(20)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18))
+        .overlay(RoundedRectangle(cornerRadius: 18).stroke(.white.opacity(0.08)))
     }
 
     private var stats: some View {
@@ -161,6 +175,8 @@ struct LessonCard: View {
                 .lineLimit(3)
                 .fixedSize(horizontal: false, vertical: true)
                 .multilineTextAlignment(.leading)
+            ProgressView(value: progress[lesson.id].overallScore(in: lesson))
+                .tint(lesson.level.accentColor)
             HStack(spacing: 12) {
                 Label("\(lesson.vocabulary.count) words", systemImage: "character.book.closed")
                 Label("\(lesson.estimatedMinutes) min", systemImage: "clock")
