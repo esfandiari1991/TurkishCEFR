@@ -67,7 +67,7 @@ enum B2Content {
         exercises: [
             .multipleChoice(MultipleChoiceQuestion(
                 "b2-pass-mc1", "Passive of 'yazmak' (to write) =",
-                ["yazmak", "yazılmak", "yazdırmak", "yazmak"],
+                ["yazmak", "yazılmak", "yazdırmak", "yazınmak"],
                 correct: 1,
                 explanation: "Consonant stem → -Il: yazılmak 'to be written'."
             ))
