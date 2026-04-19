@@ -32,8 +32,8 @@ struct ExerciseHostView: View {
     @ViewBuilder
     private var content: some View {
         switch exercise {
-        case .flashcard(let set):
-            FlashcardView(set: set,
+        case .flashcard(let cards):
+            FlashcardView(flashcards: cards,
                           tint: lesson.level.accentColor) {
                 progress.markExerciseCompleted(lessonID: lesson.id, exerciseID: exercise.id)
             }

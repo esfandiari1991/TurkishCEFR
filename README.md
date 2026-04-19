@@ -4,7 +4,7 @@ A native **macOS** app that teaches Turkish, organised by the CEFR framework
 (A1 → C2). Written in pure SwiftUI for macOS 14 Sonoma and later.
 
 <p align="center">
-  <img src="TurkishCEFR/Assets.xcassets/AppIcon.appiconset/icon_512x512@2x.png" width="180" alt="TurkishCEFR icon"/>
+  <img src="TurkishCEFR/Assets.xcassets/icon_1024_source.png" width="180" alt="TurkishCEFR icon"/>
 </p>
 
 ## Download & run (no installation needed)

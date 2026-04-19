@@ -20,11 +20,10 @@ from __future__ import annotations
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
-OUT_DIR = (
-    Path(__file__).resolve().parent.parent
-    / "TurkishCEFR" / "Assets.xcassets" / "AppIcon.appiconset"
-)
-OUT_DIR.mkdir(parents=True, exist_ok=True)
+REPO_ROOT = Path(__file__).resolve().parent.parent
+ASSETS_DIR = REPO_ROOT / "TurkishCEFR" / "Assets.xcassets"
+APPICON_DIR = ASSETS_DIR / "AppIcon.appiconset"
+APPICON_DIR.mkdir(parents=True, exist_ok=True)
 
 MASTER = 1024
 
@@ -249,11 +248,14 @@ def make_master(size: int = MASTER) -> Image.Image:
 
 def main() -> None:
     master = make_master(MASTER)
-    master.save(OUT_DIR / "icon_1024.png")
-    print(f"Wrote {OUT_DIR/'icon_1024.png'}")
+    # 1024 master lives *outside* the .appiconset to avoid Xcode's
+    # "unassigned child" warning (macOS AppIcon stops at 512@2x).
+    source_path = ASSETS_DIR / "icon_1024_source.png"
+    master.save(source_path)
+    print(f"Wrote {source_path}")
     for pt, scale, px in SIZES:
         name = f"icon_{pt}x{pt}@{scale}x.png"
-        master.resize((px, px), Image.LANCZOS).save(OUT_DIR / name)
+        master.resize((px, px), Image.LANCZOS).save(APPICON_DIR / name)
         print(f"  {name}")
 
 

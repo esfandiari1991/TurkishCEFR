@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct FlashcardView: View {
-    let set: FlashcardSet
+    let flashcards: FlashcardSet
     let tint: Color
     let onComplete: () -> Void
 
@@ -9,9 +9,9 @@ struct FlashcardView: View {
     @State private var flipped: Bool = false
     @State private var seen: Set<Int> = []
 
-    private var card: VocabularyItem { set.cards[index] }
+    private var card: VocabularyItem { flashcards.cards[index] }
     private var progress: Double {
-        set.cards.isEmpty ? 0 : Double(seen.count) / Double(set.cards.count)
+        flashcards.cards.isEmpty ? 0 : Double(seen.count) / Double(flashcards.cards.count)
     }
 
     var body: some View {
@@ -74,13 +74,13 @@ struct FlashcardView: View {
         .onAppear { seen.insert(index) }
     }
 
-    private var isLast: Bool { index == set.cards.count - 1 }
+    private var isLast: Bool { index == flashcards.cards.count - 1 }
 
     private func advance(direction: Int) {
         withAnimation(.easeInOut(duration: 0.25)) { flipped = false }
         let newIndex = index + direction
         if newIndex < 0 { return }
-        if newIndex >= set.cards.count {
+        if newIndex >= flashcards.cards.count {
             onComplete()
             return
         }
