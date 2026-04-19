@@ -1,0 +1,112 @@
+name: Build macOS app
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build & Package
+    runs-on: macos-14
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode 15
+        run: |
+          sudo xcode-select -s /Applications/Xcode_15.4.app || \
+          sudo xcode-select -s /Applications/Xcode_15.3.app || \
+          sudo xcode-select -s /Applications/Xcode_15.2.app || \
+          sudo xcode-select -s /Applications/Xcode_15.1.app || \
+          sudo xcode-select -s /Applications/Xcode_15.0.app || true
+          xcodebuild -version
+          swift --version
+
+      - name: Install XcodeGen
+        run: |
+          brew update
+          brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build app (Release)
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project TurkishCEFR.xcodeproj \
+            -scheme TurkishCEFR \
+            -configuration Release \
+            -destination 'platform=macOS' \
+            -derivedDataPath build \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=YES \
+            build | xcpretty || true
+
+      - name: Locate built app
+        id: locate
+        run: |
+          APP_PATH="$(find build/Build/Products/Release -maxdepth 2 -name 'TurkishCEFR.app' -type d | head -1)"
+          if [ -z "$APP_PATH" ]; then
+            echo "::error::TurkishCEFR.app not found in build output"
+            find build -maxdepth 5 -type d -name '*.app' || true
+            exit 1
+          fi
+          echo "app_path=$APP_PATH" >> "$GITHUB_OUTPUT"
+          ls -la "$APP_PATH"
+          echo "Size: $(du -sh "$APP_PATH" | cut -f1)"
+
+      - name: Ad-hoc sign the app
+        run: |
+          APP_PATH="${{ steps.locate.outputs.app_path }}"
+          codesign --force --deep --sign - "$APP_PATH"
+          codesign --verify --verbose=2 "$APP_PATH" || true
+
+      - name: Zip the app
+        run: |
+          APP_PATH="${{ steps.locate.outputs.app_path }}"
+          OUT_DIR="$(pwd)/dist"
+          mkdir -p "$OUT_DIR"
+          ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "$OUT_DIR/TurkishCEFR.zip"
+          ls -la "$OUT_DIR"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TurkishCEFR-macOS
+          path: dist/TurkishCEFR.zip
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Publish Release (tag pushes only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/TurkishCEFR.zip
+          draft: false
+          generate_release_notes: true
+
+      - name: Create / update "latest" pre-release (main branch)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: "Latest main build"
+          prerelease: true
+          files: dist/TurkishCEFR.zip
+          body: |
+            Automated build from the latest commit on `main`.
+
+            Download `TurkishCEFR.zip`, unzip, and move the `TurkishCEFR.app` anywhere (e.g. your `Applications` folder).
+
+            On first launch you may see a Gatekeeper warning (the app isn't Apple-notarized). Right-click the app → **Open** → **Open** to bypass it once.
