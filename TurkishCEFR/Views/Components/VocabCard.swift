@@ -77,10 +77,10 @@ struct VocabCard: View {
     private var details: some View {
         VStack(alignment: .leading, spacing: 8) {
             if let def = item.definitionEN {
-                DefinitionBlock(title: "Definition", body: def, tint: tint)
+                DefinitionBlock(title: "Definition", text: def, tint: tint)
             }
             if let defTR = item.definitionTR {
-                DefinitionBlock(title: "Tanım (TR)", body: defTR, tint: tint)
+                DefinitionBlock(title: "Tanım (TR)", text: defTR, tint: tint)
             }
             if !item.moreExamples.isEmpty || item.exampleTR != nil {
                 examplesBlock
@@ -92,10 +92,10 @@ struct VocabCard: View {
                 ChipsBlock(title: "Antonyms · Zıt Anlamlı", items: item.antonyms, tint: .red)
             }
             if let note = item.usageNote {
-                DefinitionBlock(title: "Usage note", body: note, tint: tint, icon: "lightbulb")
+                DefinitionBlock(title: "Usage note", text: note, tint: tint, icon: "lightbulb")
             }
             if let etym = item.etymology {
-                DefinitionBlock(title: "Etymology", body: etym, tint: tint, icon: "clock.arrow.circlepath")
+                DefinitionBlock(title: "Etymology", text: etym, tint: tint, icon: "clock.arrow.circlepath")
             }
         }
         .padding(10)
@@ -136,7 +136,7 @@ private struct ExampleRow: View {
 
 private struct DefinitionBlock: View {
     let title: String
-    let body: String
+    let text: String
     let tint: Color
     var icon: String = "text.alignleft"
 
@@ -146,7 +146,7 @@ private struct DefinitionBlock: View {
                 Image(systemName: icon).foregroundStyle(tint)
                 Text(title).font(.caption.weight(.semibold)).foregroundStyle(tint)
             }
-            Text(body).font(.callout)
+            Text(text).font(.callout)
         }
     }
 }

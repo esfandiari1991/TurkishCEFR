@@ -24,7 +24,7 @@ final class Speech: ObservableObject {
 
     /// All Turkish voices installed on the system (any variant of tr-TR).
     var availableTurkishVoices: [AVSpeechSynthesisVoice] {
-        AVSpeechSynthesisVoice.speechSynthesisVoices()
+        AVSpeechSynthesisVoice.speechVoices()
             .filter { $0.language.lowercased().hasPrefix("tr") }
             .sorted { lhs, rhs in
                 // Premium > Enhanced > Default, then alphabetical by name.
