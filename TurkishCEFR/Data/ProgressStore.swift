@@ -186,16 +186,20 @@ final class ProgressStore: ObservableObject {
 
     // MARK: - XP & Streaks
 
-    func awardXP(_ amount: Int, reason: String) {
+    /// - Parameter isStudyAction: when `true` the XP also counts towards the
+    ///   daily activity heatmap and adds ~90 s of approximate study time.
+    ///   Pass `false` for rewards that aren't actual study (e.g. badge bonuses).
+    func awardXP(_ amount: Int, reason: String, isStudyAction: Bool = true) {
         guard amount > 0 else { return }
         let oldLevel = stats.level
         stats.totalXP += amount
         let newLevel = stats.level
         lastXPAward = XPAwardEvent(amount: amount, reason: reason)
-        // Track the activity heatmap and approximate study time.
-        let key = ActivityDateKey.key()
-        stats.dailyActivity[key, default: 0] += amount
-        stats.studySeconds += 90
+        if isStudyAction {
+            let key = ActivityDateKey.key()
+            stats.dailyActivity[key, default: 0] += amount
+            stats.studySeconds += 90
+        }
         if newLevel > oldLevel {
             levelUpEvent = LevelUpEvent(oldLevel: oldLevel, newLevel: newLevel)
             stats.acknowledgedLevel = newLevel
@@ -239,7 +243,9 @@ final class ProgressStore: ObservableObject {
                 stats.pendingBadgeToasts.append(badge.id)
                 newlyUnlocked.append(badge)
                 if badge.xpReward > 0 {
-                    awardXP(badge.xpReward, reason: "Badge: \(badge.title)")
+                    awardXP(badge.xpReward,
+                            reason: "Badge: \(badge.title)",
+                            isStudyAction: false)
                 }
             }
         }
