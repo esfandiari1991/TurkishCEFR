@@ -264,10 +264,11 @@ enum TurkishMorphology {
         }
     }
 
-    // -mAlI necessity
+    // -mAlI necessity. The final I of -mAlI follows the 2-way A, so it must
+    // harmonize with A (always unrounded), not with the stem vowel.
     private static func necessity(stem: String, person: Person) -> String {
         let a: Character = harmony2(for: stem)
-        let i: Character = harmony4(for: stem)
+        let i: Character = harmony4(for: String(a))
         let root = "\(stem)m\(a)l\(i)"
         switch person {
         case .s1: return root + "y\(i)m"
@@ -279,10 +280,11 @@ enum TurkishMorphology {
         }
     }
 
-    // -sA conditional
+    // -sA conditional. The 2pl I in -nIz follows the A of -sA, so it must
+    // harmonize with A (always unrounded), not with the stem vowel.
     private static func conditional(stem: String, person: Person) -> String {
         let a: Character = harmony2(for: stem)
-        let i: Character = harmony4(for: stem)
+        let i: Character = harmony4(for: String(a))
         let root = "\(stem)s\(a)"
         switch person {
         case .s1: return root + "m"
@@ -294,15 +296,17 @@ enum TurkishMorphology {
         }
     }
 
-    // Imperative
+    // Imperative. p1 uses -(y)AlIm where the final I follows A (always
+    // unrounded), so we derive it from A instead of the stem vowel.
     private static func imperative(stem: String, person: Person) -> String {
         let i: Character = harmony4(for: stem)
         let a: Character = harmony2(for: stem)
+        let iAfterA: Character = harmony4(for: String(a))
         switch person {
         case .s1: return "— "   // no 1sg imperative
         case .s2: return stem
         case .s3: return "\(stem)s\(i)n"
-        case .p1: return "\(stem)\(endsInVowel(stem) ? "y" : "")\(a)l\(i)m"
+        case .p1: return "\(stem)\(endsInVowel(stem) ? "y" : "")\(a)l\(iAfterA)m"
         case .p2: return "\(stem)\(endsInVowel(stem) ? "y" : "")\(i)n\(i)z"
         case .p3: return "\(stem)s\(i)nl\(a)r"
         }
