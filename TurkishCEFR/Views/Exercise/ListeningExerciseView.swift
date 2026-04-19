@@ -144,5 +144,6 @@ struct ListeningExerciseView: View {
             .filter { !CharacterSet.punctuationCharacters.contains($0) }
             .reduce(into: "") { $0.append(Character($1)) }
             .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
     }
 }
