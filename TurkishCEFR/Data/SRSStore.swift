@@ -65,7 +65,7 @@ final class SRSStore: ObservableObject {
             c.lapses += 1
             c.ease = max(1.3, c.ease - 0.2)
         case .hard:
-            c.interval = c.repetitions == 0 ? 1 : max(1, Int(Double(c.interval) * 1.2))
+            c.interval = c.repetitions == 0 ? 1 : max(c.interval + 1, Int(Double(c.interval) * 1.2))
             c.repetitions += 1
             c.ease = max(1.3, c.ease - 0.15)
         case .good:

@@ -185,10 +185,22 @@ enum TurkishMorphology {
         return s + buffer + (endings[person] ?? "")
     }
 
-    // Aorist: -Ir for vowel-final & polysyllabic; -Ar for single-syllable consonant stems.
+    /// 13 common monosyllabic verbs that are the exception to the "-Ar for
+    /// monosyllabic consonant stems" rule — they take -Ir/-İr/-Ur/-Ür instead.
+    /// See Göksel & Kerslake §21.2.1.
+    static let aoristIrregularIr: Set<String> = [
+        "al", "bil", "bul", "dur", "gel", "gör",
+        "kal", "ol", "öl", "san", "var", "ver", "vur",
+    ]
+
+    // Aorist: -Ir for vowel-final & polysyllabic; -Ar for single-syllable
+    // consonant stems, with a fixed exception list for the 13 common verbs
+    // that also take -Ir/-İr/-Ur/-Ür.
     private static func aorist(stem: String, person: Person) -> String {
         let vowel: Character
         if endsInVowel(stem) {
+            vowel = harmony4(for: stem)
+        } else if aoristIrregularIr.contains(stem) {
             vowel = harmony4(for: stem)
         } else {
             // crude syllable heuristic: single-syllable stems use -Ar, others -Ir.
