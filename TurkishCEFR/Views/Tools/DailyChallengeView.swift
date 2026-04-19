@@ -8,13 +8,18 @@ struct DailyChallengeView: View {
     @EnvironmentObject private var progress: ProgressStore
     @State private var answer: String = ""
     @State private var outcome: Outcome? = nil
+    /// True once the learner has solved today's challenge in *this* session,
+    /// or it was already solved on a previous launch. Kept as @State so that
+    /// setting `outcome = .correct` doesn't immediately swap in the
+    /// "already earned" banner before the success message can render.
+    @State private var completed: Bool = false
 
     private enum Outcome: Equatable {
         case correct, close, tryAgain
     }
 
     private var pair: CorpusStore.SentencePair? { corpus.dailySentence() }
-    private var alreadyDoneToday: Bool {
+    private static func alreadyDoneTodayFromDefaults() -> Bool {
         UserDefaults.standard.string(forKey: "dailyChallenge.last")
             == ActivityDateKey.key()
     }
@@ -24,16 +29,20 @@ struct DailyChallengeView: View {
             header
             if let p = pair {
                 question(p)
-                if !alreadyDoneToday {
-                    answerField(p)
+                if outcome == .correct {
                     outcomeBanner
-                } else {
+                    Text("Target answer: \(p.en)")
+                        .font(.callout).foregroundStyle(.secondary)
+                } else if completed {
                     VStack(spacing: 8) {
                         Label("You already earned today's bonus XP!", systemImage: "checkmark.seal.fill")
                             .foregroundStyle(.green)
                         Text("Target answer: \(p.en)")
                             .font(.callout).foregroundStyle(.secondary)
                     }
+                } else {
+                    answerField(p)
+                    outcomeBanner
                 }
             } else {
                 ProgressView("Loading today's challenge…")
@@ -43,6 +52,7 @@ struct DailyChallengeView: View {
         .padding(28)
         .frame(minWidth: 520, minHeight: 440)
         .background(.regularMaterial)
+        .onAppear { completed = Self.alreadyDoneTodayFromDefaults() }
     }
 
     private var header: some View {
@@ -118,9 +128,12 @@ struct DailyChallengeView: View {
         }
         if given == want {
             outcome = .correct
-            UserDefaults.standard.set(ActivityDateKey.key(), forKey: "dailyChallenge.last")
-            progress.awardXP(30, reason: "Daily challenge")
-            SRSStore.shared.enroll(front: p.tr, back: p.en, origin: "daily")
+            if !completed {
+                UserDefaults.standard.set(ActivityDateKey.key(), forKey: "dailyChallenge.last")
+                progress.awardXP(30, reason: "Daily challenge")
+                SRSStore.shared.enroll(front: p.tr, back: p.en, origin: "daily")
+                completed = true
+            }
         } else if given.count >= 3 && (given.contains(want) || want.contains(given)) {
             outcome = .close
         } else {
