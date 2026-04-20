@@ -98,7 +98,11 @@ enum InterlinearGlosser {
             ("sın", "COP.2S"), ("sun", "COP.2S"), ("sin", "COP.2S"),
             ("ydi", "PAST.COP"), ("ydı", "PAST.COP"), ("ydu", "PAST.COP"), ("ydü", "PAST.COP"),
         ]
-        for (suf, tag) in map where s.hasSuffix(suf) {
+        // Require at least 2 characters of stem to remain after stripping,
+        // matching the guard used in peelCase / peelPossessive. Without it,
+        // short forms like "sin" or words that coincidentally end in a
+        // copula suffix (e.g. the proper noun "Yasin") get mis-tagged.
+        for (suf, tag) in map where s.count > suf.count + 1 && s.hasSuffix(suf) {
             return (String(s.dropLast(suf.count)), tag)
         }
         return nil

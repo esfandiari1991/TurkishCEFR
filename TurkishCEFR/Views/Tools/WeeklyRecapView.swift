@@ -173,10 +173,13 @@ struct WeeklyRecapView: View {
         let cal = Calendar.current
         let keys = Set(weekEntries.map { $0.dayKey })
         guard !keys.isEmpty else { return 0 }
+        // Capture `now` once so we don't risk the clock crossing midnight
+        // mid-loop and producing the same day key for two different offsets.
+        let now = Date()
         var longest = 0
         var running = 0
         for offset in 0..<7 {
-            let day = cal.date(byAdding: .day, value: -offset, to: .init())!
+            let day = cal.date(byAdding: .day, value: -offset, to: now)!
             let k = ActivityDateKey.key(for: day)
             if keys.contains(k) {
                 running += 1
