@@ -108,8 +108,11 @@ enum InterlinearGlosser {
             ("ya", "DAT"), ("ye", "DAT"), ("a", "DAT"), ("e", "DAT"),
             ("da", "LOC"), ("de", "LOC"), ("ta", "LOC"), ("te", "LOC"),
             ("dan", "ABL"), ("den", "ABL"), ("tan", "ABL"), ("ten", "ABL"),
-            ("ın", "GEN"), ("in", "GEN"), ("un", "GEN"), ("ün", "GEN"),
+            // 3-character genitives MUST come before the 2-character ones —
+            // otherwise "evinin" (of his/her house) greedy-matches "in" and
+            // we'd mis-tag it as 2S.POSS ("your house") in the next peel.
             ("nın", "GEN"), ("nin", "GEN"), ("nun", "GEN"), ("nün", "GEN"),
+            ("ın", "GEN"), ("in", "GEN"), ("un", "GEN"), ("ün", "GEN"),
         ]
         for (suf, tag) in map where s.count > suf.count + 1 && s.hasSuffix(suf) {
             return (String(s.dropLast(suf.count)), tag)

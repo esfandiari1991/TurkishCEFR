@@ -84,9 +84,10 @@ final class LinkHealthChecker: ObservableObject {
         guard allowNetwork else { return }
         guard !isChecking else { return }
         isChecking = true
-        defer {
-            Task { @MainActor in self.isChecking = false }
-        }
+        // `refresh()` is already MainActor-isolated, so clearing the flag
+        // synchronously in `defer` keeps it consistent on every exit path
+        // (including the early return below when nothing is stale).
+        defer { isChecking = false }
 
         let refs = LessonResources.allReferences
         let stale = refs.filter { needsCheck($0) }
