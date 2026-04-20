@@ -23,7 +23,12 @@ SOURCE = REPO_ROOT / "TurkishCEFR" / "Data" / "Content" / "LessonResources.swift
 
 ID_PATTERN = re.compile(
     r'\.init\(youtubeID:\s*"([^"]+)"\s*,\s*'
-    r'title:\s*"([^"]+)"\s*,\s*'
+    # Titles may contain Swift-escaped inner quotes (e.g. `\"Diye\"`), so
+    # accept either a non-quote non-backslash char or a `\\.` escape
+    # sequence. Using `[^"]+` here would silently drop any entry whose
+    # title contains `\"` and stop the weekly cron from catching dead
+    # links for those references.
+    r'title:\s*"((?:[^"\\]|\\.)*)"\s*,\s*'
     r'channel:\s*"([^"]+)"',
     re.DOTALL,
 )
