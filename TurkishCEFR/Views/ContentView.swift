@@ -207,6 +207,8 @@ struct ContentView: View {
             case .pronunciation: PronunciationCoachView()
             case .journal:       StudyJournalView()
             case .recap:         WeeklyRecapView()
+            case .harmony:       VowelHarmonyLabView()
+            case .shadow:        ShadowSpeakingRoomView()
             }
         case .podcasts:
             PodcastsView()

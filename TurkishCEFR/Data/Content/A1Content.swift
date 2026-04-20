@@ -101,6 +101,20 @@ enum A1Part1 {
                 correct: 3,
                 explanation: "Eight: a, e, ı, i, o, ö, u, ü."
             )),
+            // Writing quiz — production-style MC with per-option feedback.
+            .multipleChoice(MultipleChoiceQuestion(
+                "a1-alphabet-wq1",
+                "Write 'book' in Turkish. Which spelling is correct?",
+                ["kitap", "kıtap", "kitab", "kittap"],
+                correct: 0,
+                explanation: "Turkish spelling mirrors pronunciation. Every letter is one sound.",
+                rationales: [
+                    "Correct. 'kitap' uses 'i' (front, unrounded) — the word sounds exactly as written.",
+                    "Close, but 'ı' (dotless) is a back vowel; this spelling would be pronounced 'kuh-tap'.",
+                    "The final consonant devoices in writing: Turkish writes 'p', not 'b', at word end — even though it softens to 'b' when a vowel follows (kitabım = my book).",
+                    "Only one 't'. Turkish never doubles a consonant within a root."
+                ]
+            )),
             .flashcard(FlashcardSet(id: "a1-alphabet-fc", cards: [
                 VocabularyItem("harf", "letter"),
                 VocabularyItem("kelime", "word"),
@@ -159,6 +173,20 @@ enum A1Part1 {
                 ["Hoşça kal", "Güle güle", "Günaydın", "İyi geceler"],
                 correct: 1,
                 explanation: "'Güle güle' is said by the one staying to the one leaving."
+            )),
+            // Writing quiz — produce the correct word order.
+            .multipleChoice(MultipleChoiceQuestion(
+                "a1-greet-wq1",
+                "Write 'My name is Ali.' in Turkish. Which sentence is grammatically correct?",
+                ["Benim adım Ali.", "Ben ismim Ali.", "Adım ben Ali.", "Ali benim adı."],
+                correct: 0,
+                explanation: "The Turkish possessive structure 'Benim adım ___' puts the possessor first, then the noun with a 1S.POSS suffix.",
+                rationales: [
+                    "Correct. 'Benim' (my) + 'adım' (my name, 1S.POSS) + name. The possessive suffix -ım marks 'my'.",
+                    "'İsmim' means 'my name' too, but 'ben' is wrong here — you need the genitive 'benim' to show possession.",
+                    "Word order is wrong. Subject/possessor always comes before the possessed noun in Turkish.",
+                    "The possessive is on the wrong word. 'Adı' means 'his/her name', not 'my name'. You need 'adım'."
+                ]
             )),
             .fillInBlank(FillInBlankQuestion(
                 "a1-greet-fb1",
@@ -234,6 +262,20 @@ enum A1Part1 {
                 "a1-num-mc1", "Which number is 47?",
                 ["kırk yedi", "dört yedi", "yedi kırk", "otuz yedi"],
                 correct: 0
+            )),
+            // Writing quiz: produce the correct agreement/ordering.
+            .multipleChoice(MultipleChoiceQuestion(
+                "a1-num-wq1",
+                "Write 'three apples' in Turkish. Which is correct?",
+                ["üç elmalar", "üç elma", "elma üç", "üçler elma"],
+                correct: 1,
+                explanation: "After a number, Turkish keeps the noun singular. Plural suffix -ler/-lar is redundant and ungrammatical.",
+                rationales: [
+                    "Wrong: -lar is unnecessary. Turkish nouns stay SINGULAR after a numeral.",
+                    "Correct. 'üç elma' = 'three apples'. The number already implies plurality; no -lar needed.",
+                    "Word order is wrong. Numerals always come BEFORE the noun in Turkish.",
+                    "You cannot pluralise the number itself here. 'üçler' means 'triplets' / 'threes (as a group)' — it's a noun form, not a counter."
+                ]
             )),
             .fillInBlank(FillInBlankQuestion(
                 "a1-num-fb1", "___ beş = 25",

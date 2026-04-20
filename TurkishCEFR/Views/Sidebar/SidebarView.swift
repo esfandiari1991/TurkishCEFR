@@ -62,6 +62,16 @@ struct SidebarView: View {
             }
 
             Section {
+                ForEach(AppSection.Tool.labTools) { tool in
+                    NavigationLink(value: AppSection.tool(tool)) {
+                        ToolRow(tool: tool)
+                    }
+                }
+            } header: {
+                sectionHeader("Lab", systemImage: "testtube.2")
+            }
+
+            Section {
                 ForEach(AppSection.ProgressTab.allCases) { tab in
                     NavigationLink(value: AppSection.progress(tab)) {
                         ProgressRowView(tab: tab)
