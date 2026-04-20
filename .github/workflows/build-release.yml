@@ -2,10 +2,14 @@ name: Build macOS app
 
 on:
   push:
-    branches: [main]
+    branches: [main, "devin/1776589781-turkishcefr-initial"]
     tags: ["v*"]
   pull_request:
-    branches: [main]
+    # Build on PRs landing on main *or* on the long-lived integration
+    # branch (`devin/1776589781-turkishcefr-initial`). PR #7 targets the
+    # integration branch, so without the explicit entry here CI skips the
+    # macOS build entirely and we lose our only compile-time check.
+    branches: [main, "devin/1776589781-turkishcefr-initial"]
   workflow_dispatch:
 
 permissions:
