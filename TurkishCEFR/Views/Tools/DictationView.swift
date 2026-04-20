@@ -85,7 +85,11 @@ struct DictationView: View {
                         .buttonStyle(.borderedProminent)
                         .controlSize(.large)
                         .tint(BrandTheme.crimson)
-                        .keyboardShortcut(.space, modifiers: [])
+                        // Command-modifier is required: the space bar alone
+                        // would otherwise be swallowed before the TextField
+                        // below can receive it, making multi-word dictation
+                        // answers impossible to type.
+                        .keyboardShortcut(.space, modifiers: .command)
 
                         Button {
                             Speech.shared.speak(pair.tr, rate: 0.35)

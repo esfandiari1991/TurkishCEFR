@@ -109,8 +109,14 @@ productbuild \
   --resources "$RES" \
   "$OUT_PKG"
 
-# Ad-hoc sign the installer so macOS presents the cleaner
-# "Install" flow instead of the raw "unidentified developer" wall.
-productsign --sign - "$OUT_PKG" "$OUT_PKG.signed" 2>/dev/null && mv "$OUT_PKG.signed" "$OUT_PKG" || true
+# Note: unlike `codesign`, `productsign` does NOT accept `-` as an
+# ad-hoc identity — it only signs with a real "Developer ID Installer"
+# certificate from an Apple Developer account. For a self-distributed
+# build we leave the PKG unsigned; the post-install script already
+# strips the quarantine flag so the app still opens cleanly on first
+# launch. If the repo ever ships a signing identity, uncomment below:
+#
+#   productsign --sign "Developer ID Installer: Your Name (TEAMID)" \
+#     "$OUT_PKG" "$OUT_PKG.signed" && mv "$OUT_PKG.signed" "$OUT_PKG"
 
 echo "Built: $OUT_PKG ($(du -h "$OUT_PKG" | cut -f1))"
