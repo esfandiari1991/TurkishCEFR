@@ -23,11 +23,27 @@ struct MultipleChoiceView: View {
 
             VStack(spacing: 12) {
                 ForEach(Array(question.choices.enumerated()), id: \.offset) { i, choice in
-                    ChoiceButton(text: choice,
-                                 state: state(for: i),
-                                 tint: tint) {
-                        guard !submitted else { return }
-                        selected = i
+                    VStack(alignment: .leading, spacing: 6) {
+                        ChoiceButton(text: choice,
+                                     state: state(for: i),
+                                     tint: tint) {
+                            guard !submitted else { return }
+                            selected = i
+                        }
+                        // Per-option rationale. Shown after the learner
+                        // submits, for every option that has one attached.
+                        // This turns the quiz into an explainer: every
+                        // distractor becomes a teachable moment.
+                        if submitted,
+                           let rationales = question.rationales,
+                           rationales.indices.contains(i) {
+                            Text(rationales[i])
+                                .font(.callout)
+                                .foregroundStyle(i == question.correctIndex ? Color.green : Color.secondary)
+                                .padding(.horizontal, 14)
+                                .padding(.bottom, 2)
+                                .transition(.opacity)
+                        }
                     }
                 }
             }

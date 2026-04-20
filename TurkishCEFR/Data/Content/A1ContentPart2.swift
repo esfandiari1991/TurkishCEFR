@@ -50,6 +50,20 @@ enum A1Part2 {
                 "a1-home-mc1", "'Mutfak' means…",
                 ["bedroom", "kitchen", "bathroom", "balcony"],
                 correct: 1
+            )),
+            // Writing quiz: locative + 'var' / 'yok'.
+            .multipleChoice(MultipleChoiceQuestion(
+                "a1-home-wq1",
+                "Write 'There is no TV in my room.' in Turkish. Which is correct?",
+                ["Odamda televizyon yok.", "Odamda televizyon değil.", "Oda televizyon yok.", "Odamda televizyonum yok."],
+                correct: 0,
+                explanation: "To say 'there is no X in Y', use 'Y-LOC X yok'. The possessive goes on the location, not the thing.",
+                rationales: [
+                    "Correct. 'oda+m+da' = 'in my room' + 'televizyon yok' = '(there is) no TV'.",
+                    "'değil' negates copulas ('is not'), not existence. Use 'yok' for 'there isn’t'.",
+                    "Missing the possessive: 'oda' = 'room' (generic); 'odam' = 'my room'. And the locative -da is missing.",
+                    "Double-marked: 'televizyonum' adds a second possessive. Say 'odamda televizyon yok' (no TV in my room), not 'my TV'."
+                ]
             ))
         ]
     )
@@ -100,7 +114,21 @@ enum A1Part2 {
                 VocabularyItem("gitmek", "to go", .verb),
                 VocabularyItem("okumak", "to read", .verb),
                 VocabularyItem("uyumak", "to sleep", .verb)
-            ]))
+            ])),
+            // Writing quiz: infinitive → stem derivation.
+            .multipleChoice(MultipleChoiceQuestion(
+                "a1-routine-wq1",
+                "Which is the correct verb STEM of 'çalışmak'?",
+                ["çalış-", "çalışma-", "çalışm-", "çalışmak-"],
+                correct: 0,
+                explanation: "To get the stem, drop '-mek' or '-mak' from the dictionary form. 'çalış-' is the bare stem you attach tense + person suffixes to.",
+                rationales: [
+                    "Correct. Drop -mak → çalış-. You then attach -ıyor-, -dı-, -acak-, etc.",
+                    "Drop the whole infinitive ending (-mak), not just -k.",
+                    "Only -mek / -mak is dropped. Keep everything up to the last vowel of the stem.",
+                    "The dictionary form is never the stem. You always strip the infinitive suffix first."
+                ]
+            ))
         ]
     )
 
@@ -160,6 +188,20 @@ enum A1Part2 {
                 "Correct negative of 'geliyorum':",
                 ["gelmiyorum", "gelmuyorum", "gelmeyorum", "geliyormuyum"],
                 correct: 0
+            )),
+            // Writing quiz: full present-continuous conjugation, 1S.
+            .multipleChoice(MultipleChoiceQuestion(
+                "a1-pc-wq1",
+                "Write 'I am reading a book.' in Turkish. Which is correct?",
+                ["Kitap okuyorum.", "Kitapı okuyorum.", "Kitabı okuıyorum.", "Kitap okiyorum."],
+                correct: 0,
+                explanation: "Turkish drops a stem-final vowel before -(I)yor (oku + -yor = okuyor). With a generic object, no accusative is needed. 1S suffix is -um.",
+                rationales: [
+                    "Correct. 'oku-' + 'yor' + 'um' = 'okuyorum'. Object stays indefinite.",
+                    "Accusative makes the book definite ('the book'). Only use it when referring to a specific book.",
+                    "Buffer vowel error: a stem ending in a vowel drops it, so 'oku-' + '-yor' → 'okuyor', not 'okuıyor'.",
+                    "Wrong harmony: after 'oku' the vowel before -yor elides; then 1S needs -um (round back), not -iyorum."
+                ]
             ))
         ]
     )
@@ -202,6 +244,20 @@ enum A1Part2 {
                 "a1-time2-mc1", "'Half past seven' in Turkish is…",
                 ["Saat yedi çeyrek", "Saat yedi buçuk", "Saat yedi on beş", "Saat yedi otuz"],
                 correct: 1
+            )),
+            // Writing quiz: 'at' a time → locative on the hour.
+            .multipleChoice(MultipleChoiceQuestion(
+                "a1-time2-wq1",
+                "Write 'Let’s meet at eight.' in Turkish. Which is correct?",
+                ["Saat sekizde görüşelim.", "Saat sekiz görüşelim.", "Saat sekize görüşelim.", "Saat sekizden görüşelim."],
+                correct: 0,
+                explanation: "'At TIME' uses the locative -da/-de on the hour number. 'Sekiz' ends in a back vowel 'i'? No — 'i' is front → -de.",
+                rationales: [
+                    "Correct. 'sekiz' + front-vowel locative -de → 'sekizde' = 'at eight'.",
+                    "Missing the case: bare 'saat sekiz' just names the hour, it doesn’t mean 'at eight'.",
+                    "'Sekize' is dative ('to eight'), used for 'quarter to', not 'at eight'.",
+                    "'Sekizden' is ablative ('from eight'), not 'at'."
+                ]
             ))
         ]
     )
@@ -250,6 +306,20 @@ enum A1Part2 {
                 "a1-weather-mc1", "'Kar yağıyor' means…",
                 ["It is sunny.", "It is raining.", "It is snowing.", "It is windy."],
                 correct: 2
+            )),
+            // Writing quiz: descriptive weather sentence.
+            .multipleChoice(MultipleChoiceQuestion(
+                "a1-weather-wq1",
+                "Write 'Today the weather is very hot.' in Turkish. Which is correct?",
+                ["Bugün hava çok sıcak.", "Bugün hava çok sıcaktır.", "Bugün sıcak hava çok.", "Bugün çok sıcak havada."],
+                correct: 0,
+                explanation: "'Hava' + intensifier + adjective is the standard pattern. No verb needed; '-dır' is too formal for small talk.",
+                rationales: [
+                    "Correct. Natural spoken form.",
+                    "Grammatical but over-formal. '-dır' reads like a news bulletin, not conversation.",
+                    "Wrong word order. 'Hava' must come BEFORE the adjective.",
+                    "'Havada' means 'in the air / on air' (locative). Not appropriate for 'the weather'."
+                ]
             ))
         ]
     )
@@ -295,6 +365,20 @@ enum A1Part2 {
                 "a1-shop-mc1", "Which asks 'How much?'",
                 ["Kaç kişi?", "Ne kadar?", "Nereden?", "Neden?"],
                 correct: 1
+            )),
+            // Writing quiz: polite discount request, informal tone.
+            .multipleChoice(MultipleChoiceQuestion(
+                "a1-shop-wq1",
+                "Write 'Could you give a small discount?' politely in Turkish. Which is best?",
+                ["Biraz indirim yapar mısınız?", "Biraz indirim yapar mısın?", "İndirim yap!", "İndirim mı yaparsiniz?"],
+                correct: 0,
+                explanation: "'-Ar mısınız?' is the courteous aorist question directed at 'you-formal/plural'. 'Biraz' softens the request further.",
+                rationales: [
+                    "Correct. 2P question with aorist + 'biraz' = polite customer tone.",
+                    "Grammatical but informal (2S). Using 'sen' with a shopkeeper you don’t know is rude.",
+                    "Imperative ‘yap!’ is a command. Never use this with a shopkeeper.",
+                    "Spelling: 'yaparsiniz' should be 'yaparsınız' (back-vowel harmony)."
+                ]
             ))
         ]
     )
@@ -351,6 +435,20 @@ enum A1Part2 {
             .fillInBlank(FillInBlankQuestion(
                 "a1-dir-fb1", "Okul___ gidiyorum.",
                 answer: "a", translation: "I am going to school."
+            )),
+            // Writing quiz: dative with proper-noun apostrophe.
+            .multipleChoice(MultipleChoiceQuestion(
+                "a1-dir-wq1",
+                "Write 'I am going to Istanbul.' in Turkish. Which is correct?",
+                ["İstanbul'a gidiyorum.", "İstanbula gidiyorum.", "İstanbul'e gidiyorum.", "İstanbul gidiyorum."],
+                correct: 0,
+                explanation: "Direction uses the dative -a/-e. 'Istanbul' ends in a back vowel 'u' → -a. Proper nouns get an apostrophe before any suffix.",
+                rationales: [
+                    "Correct. 'İstanbul' + apostrophe + dative -a.",
+                    "Missing apostrophe: proper nouns always take one before a case suffix in standard written Turkish.",
+                    "Wrong harmony. Last vowel is 'u' (back), so the dative is -a, not -e.",
+                    "Missing the dative entirely. Without -a the sentence reads 'I am going Istanbul', not 'to Istanbul'."
+                ]
             ))
         ]
     )
@@ -398,7 +496,21 @@ enum A1Part2 {
                 VocabularyItem("tren", "train"),
                 VocabularyItem("uçak", "airplane"),
                 VocabularyItem("vapur", "ferry")
-            ]))
+            ])),
+            // Writing quiz: instrumental 'ile' as a suffix.
+            .multipleChoice(MultipleChoiceQuestion(
+                "a1-trans-wq1",
+                "Write 'I am going by bus.' in Turkish. Which is correct?",
+                ["Otobüsle gidiyorum.", "Otobüsla gidiyorum.", "Otobüsile gidiyorum.", "Otobüs ile gidiyorum."],
+                correct: 0,
+                explanation: "The instrumental is -(y)le / -(y)la, chosen by vowel harmony on the last vowel of the stem. 'Otobüs' ends in 'u' (back-rounded) but the modern spoken form uses -le after 'ü/i/e', which is why 'otobüsle' is the accepted form. The long form 'ile' also works as a separate word.",
+                rationales: [
+                    "Correct. Most natural: the suffix form -le is standard after front-rounded stems.",
+                    "Wrong harmony: last-audible vowel is 'u' but modern Turkish matches the nearer front vowel, giving -le not -la.",
+                    "Missing buffer: attached forms drop the 'i' of 'ile'. Write it either as -le / -la OR as a separate word ('otobüs ile'), never 'ile' glued on.",
+                    "Grammatical as two words. Considered more formal/literary; the clitic form '-le' is more common in speech."
+                ]
+            ))
         ]
     )
 
@@ -449,6 +561,20 @@ enum A1Part2 {
                 "a1-body-mc1", "'Göz' means…",
                 ["ear", "eye", "hand", "nose"],
                 correct: 1
+            )),
+            // Writing quiz: possessive on body part + ağrıyor.
+            .multipleChoice(MultipleChoiceQuestion(
+                "a1-body-wq1",
+                "Write 'My head hurts.' in Turkish. Which is correct?",
+                ["Başım ağrıyor.", "Başum ağrıyor.", "Benim baş ağrıyor.", "Başım ağrır."],
+                correct: 0,
+                explanation: "Attach the 1SG possessive to the body part, then use the present-continuous 'ağrıyor' ('is hurting'). No separate 'my'.",
+                rationales: [
+                    "Correct. 'baş' + 1SG -ım → 'başım' = 'my head'. Then 'ağrıyor'.",
+                    "Wrong harmony: after back-unrounded 'a' the 1SG vowel is 'ı', not 'u'.",
+                    "Turkish doesn’t use 'benim' with a bare noun here; the possessive must be on the noun.",
+                    "Grammatical (aorist) but describes a habit ('my head (generally) hurts'). For 'my head hurts NOW' use -ıyor."
+                ]
             ))
         ]
     )
@@ -484,7 +610,21 @@ enum A1Part2 {
                 VocabularyItem("ayakkabı", "shoes"),
                 VocabularyItem("ceket", "jacket"),
                 VocabularyItem("şapka", "hat")
-            ]))
+            ])),
+            // Writing quiz: permission with -Ebilir + question particle.
+            .multipleChoice(MultipleChoiceQuestion(
+                "a1-clothes-wq1",
+                "Write 'May I try on these shoes?' in Turkish. Which is correct?",
+                ["Bu ayakkabıyı deneyebilir miyim?", "Bu ayakkabı deneyebilir miyim?", "Bu ayakkabıyı denerim?", "Bu ayakkabıyı deneyebilirim mi?"],
+                correct: 0,
+                explanation: "Definite direct object → accusative (-yı after a vowel stem). Ability = stem + -Ebil-. Question = separate 'miyim' with 1SG.",
+                rationales: [
+                    "Correct. 'ayakkabı' + -yı (ACC) + 'deneyebilir' + 'miyim'.",
+                    "Missing accusative. Shoes are definite ('these shoes'), so you need -yı.",
+                    "Aorist 'denerim' means 'I (generally) try'. Not a request for permission.",
+                    "Wrong question placement. The particle follows the verb root, then takes the personal suffix: 'deneyebilir miyim?'"
+                ]
+            ))
         ]
     )
 
@@ -530,6 +670,20 @@ enum A1Part2 {
                 "a1-hob-mc1", "'Yüzmek' means…",
                 ["to run", "to swim", "to sing", "to paint"],
                 correct: 1
+            )),
+            // Writing quiz: nominalised object + 'seviyorum'.
+            .multipleChoice(MultipleChoiceQuestion(
+                "a1-hob-wq1",
+                "Write 'I love reading books.' in Turkish. Which is correct?",
+                ["Kitap okumayı seviyorum.", "Kitap okumak seviyorum.", "Kitap oku seviyorum.", "Kitapı okumayı seviyorum."],
+                correct: 0,
+                explanation: "'Sevmek' takes an accusative-marked object. Turn 'to read' into a noun with -mA (okuma) and then accusative -yı: 'okumayı'.",
+                rationales: [
+                    "Correct. 'okuma' (the act of reading) + -yı (ACC) + 'seviyorum'.",
+                    "Infinitive 'okumak' can’t take a case suffix directly. Nominalise with -mA first.",
+                    "Bare stem ‘oku’ is not a noun. You must nominalise before using it as an object.",
+                    "Double accusative. Inside 'kitap okuma' the object 'kitap' stays unmarked (generic reading, not a specific book)."
+                ]
             ))
         ]
     )
@@ -591,6 +745,20 @@ enum A1Part2 {
                 "a1-q-fb1", "Sen Türk ___sün?",
                 answer: "mü", translation: "Are you Turkish?",
                 hint: "Front-rounded vowel harmony."
+            )),
+            // Writing quiz: wh-question in situ.
+            .multipleChoice(MultipleChoiceQuestion(
+                "a1-q-wq1",
+                "Write 'Where do you live?' in Turkish. Which is correct?",
+                ["Nerede yaşıyorsun?", "Nereye yaşıyorsun?", "Sen yaşıyorsun nerede?", "Nerede yaşan?"],
+                correct: 0,
+                explanation: "Live-in = locative. 'Nerede' ('where, at which place') precedes the verb, and '-sıyorsun' is the 2SG present-continuous.",
+                rationales: [
+                    "Correct. Wh-word sits where the answer would; verb carries 2SG -sun.",
+                    "'Nereye' is the dative ('to where'), used for motion, not residence.",
+                    "Wh-words in Turkish stay in the same slot as the answer, not at the end.",
+                    "Bare 'yaşan' is not a valid Turkish verb form."
+                ]
             ))
         ]
     )

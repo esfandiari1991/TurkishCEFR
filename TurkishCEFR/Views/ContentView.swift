@@ -25,10 +25,14 @@ struct ContentView: View {
     @State private var showBadges: Bool = false
     @State private var showSearch: Bool = false
     @State private var showStats: Bool = false
+    @State private var showKeyboardLegend: Bool = false
     @State private var confettiTrigger: Bool = false
     @State private var visibleLevelUp: ProgressStore.LevelUpEvent?
     @State private var visibleXPChip: ProgressStore.XPAwardEvent?
     @State private var visibleBadgeToast: Badge?
+
+    @ObservedObject private var onboarding = OnboardingStore.shared
+    @ObservedObject private var dbHealth = DatabaseHealth.shared
 
     var body: some View {
         NavigationSplitView {
@@ -59,8 +63,18 @@ struct ContentView: View {
                     .allowsHitTesting(false)
             }
         }
+        .overlay {
+            if onboarding.isShowing {
+                OnboardingView()
+                    .transition(.opacity.combined(with: .scale(scale: 0.98)))
+                    .zIndex(10)
+            }
+        }
+        .animation(.spring(response: 0.45, dampingFraction: 0.82),
+                   value: onboarding.isShowing)
         .environment(\.sizeCategory, sizeCategory(for: fontScale))
         .sheet(isPresented: $showBadges) { BadgeWall() }
+        .sheet(isPresented: $showKeyboardLegend) { KeyboardLegendSheet() }
         .sheet(isPresented: $showSearch) {
             // Lesson search uses the old level/lesson binding model, so we
             // adapt it here on the fly.
@@ -93,10 +107,17 @@ struct ContentView: View {
         }
         .task {
             await warmUpStores()
+            await dbHealth.runAll(curriculum: curriculum)
         }
         .onAppear {
             _ = progress.checkBadges(allLessons: curriculum.allLessons)
             popNextBadgeIfNeeded()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .showKeyboardLegend)) { _ in
+            showKeyboardLegend = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .restartOnboarding)) { _ in
+            onboarding.restart()
         }
     }
 
@@ -176,11 +197,18 @@ struct ContentView: View {
             }
         case .tool(let tool):
             switch tool {
-            case .dictionary: DictionaryView()
-            case .conjugator: ConjugatorView()
-            case .review:     ReviewView()
-            case .daily:      DailyChallengeView()
-            case .phrasebook: DialoguesView()
+            case .dictionary:    DictionaryView()
+            case .conjugator:    ConjugatorView()
+            case .review:        ReviewView()
+            case .daily:         DailyChallengeView()
+            case .phrasebook:    DialoguesView()
+            case .dictation:     DictationView()
+            case .gloss:         InterlinearGlossView()
+            case .pronunciation: PronunciationCoachView()
+            case .journal:       StudyJournalView()
+            case .recap:         WeeklyRecapView()
+            case .harmony:       VowelHarmonyLabView()
+            case .shadow:        ShadowSpeakingRoomView()
             }
         case .podcasts:
             PodcastsView()

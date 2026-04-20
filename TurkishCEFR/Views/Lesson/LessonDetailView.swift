@@ -25,6 +25,8 @@ struct LessonDetailView: View {
                     ExerciseSection(lesson: lesson, onOpen: { selectedExercise = $0 })
                 }
 
+                WatchAndLearnSection(lesson: lesson)
+
                 completeButton
             }
             .padding(32)

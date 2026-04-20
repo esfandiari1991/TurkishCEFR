@@ -2,10 +2,14 @@ name: Build macOS app
 
 on:
   push:
-    branches: [main]
+    branches: [main, "devin/1776589781-turkishcefr-initial"]
     tags: ["v*"]
   pull_request:
-    branches: [main]
+    # Build on PRs landing on main *or* on the long-lived integration
+    # branch (`devin/1776589781-turkishcefr-initial`). PR #7 targets the
+    # integration branch, so without the explicit entry here CI skips the
+    # macOS build entirely and we lose our only compile-time check.
+    branches: [main, "devin/1776589781-turkishcefr-initial"]
   workflow_dispatch:
 
 permissions:
@@ -51,6 +55,14 @@ jobs:
 
       - name: Fetch offline corpus (Tatoeba + Turkish frequency)
         run: python3 scripts/fetch_corpus.py
+
+      - name: Install ffmpeg (for Piper → MP3 encoding)
+        run: brew install ffmpeg
+
+      - name: Generate offline Turkish audio (Piper free + ElevenLabs if key present)
+        env:
+          ELEVEN_LABS_API_KEY: ${{ secrets.ELEVEN_LABS_API_KEY }}
+        run: python3 scripts/generate_tts.py || echo "TTS generation failed — continuing without offline audio"
 
       - name: Generate Xcode project
         run: xcodegen generate
@@ -105,7 +117,21 @@ jobs:
           ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "$OUT_DIR/TurkishCEFR.zip"
           ls -la "$OUT_DIR"
 
-      - name: Upload build artifact
+      - name: Build lightweight .dmg (drag-to-/Applications)
+        run: |
+          APP_PATH="${{ steps.locate.outputs.app_path }}"
+          OUT_DIR="$(pwd)/dist"
+          mkdir -p "$OUT_DIR"
+          bash scripts/build_dmg.sh "$APP_PATH" "$OUT_DIR/TurkishCEFR.dmg"
+
+      - name: Build heavyweight .pkg installer (wizard)
+        run: |
+          APP_PATH="${{ steps.locate.outputs.app_path }}"
+          OUT_DIR="$(pwd)/dist"
+          mkdir -p "$OUT_DIR"
+          bash scripts/build_pkg.sh "$APP_PATH" "$OUT_DIR/TurkishCEFR-Full.pkg"
+
+      - name: Upload build artifact (zip)
         uses: actions/upload-artifact@v4
         with:
           name: TurkishCEFR-macOS
@@ -113,11 +139,38 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
+      - name: Upload DMG artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TurkishCEFR-dmg
+          path: dist/TurkishCEFR.dmg
+          if-no-files-found: warn
+          retention-days: 90
+
+      - name: Upload PKG artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TurkishCEFR-pkg
+          path: dist/TurkishCEFR-Full.pkg
+          if-no-files-found: warn
+          retention-days: 90
+
+      - name: Stage release assets
+        run: |
+          OUT_DIR="$(pwd)/dist"
+          ls -la "$OUT_DIR"
+          # Keep the list inline — softprops/action-gh-release doesn't
+          # mind missing files as long as at least one exists.
+          ls "$OUT_DIR"/TurkishCEFR.zip "$OUT_DIR"/TurkishCEFR.dmg "$OUT_DIR"/TurkishCEFR-Full.pkg 2>/dev/null || true
+
       - name: Publish Release (tag pushes only)
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/TurkishCEFR.zip
+          files: |
+            dist/TurkishCEFR.zip
+            dist/TurkishCEFR.dmg
+            dist/TurkishCEFR-Full.pkg
           draft: false
           generate_release_notes: true
 
@@ -128,17 +181,29 @@ jobs:
           tag_name: latest
           name: "Latest main build"
           prerelease: true
-          files: dist/TurkishCEFR.zip
+          files: |
+            dist/TurkishCEFR.zip
+            dist/TurkishCEFR.dmg
+            dist/TurkishCEFR-Full.pkg
           body: |
             **Universal macOS build (Apple Silicon + Intel)** — requires macOS 14 Sonoma or later.
 
-            **How to install:**
-            1. Download `TurkishCEFR.zip`, unzip it.
-            2. Drag `TurkishCEFR.app` into `/Applications`.
-            3. **Open Terminal** and run this one line (removes the Gatekeeper quarantine flag so the app opens cleanly on any Mac, including macOS Sequoia where "right-click → Open" no longer works for ad-hoc-signed apps):
-               ```
-               xattr -dr com.apple.quarantine /Applications/TurkishCEFR.app
-               ```
-            4. Double-click the app.
+            ### Two ways to install — pick whichever you prefer
 
-            *(If you prefer the old right-click flow on macOS Sonoma / Ventura: right-click `TurkishCEFR.app` → **Open** → **Open**. The Terminal command above works everywhere.)*
+            **🟢 Option A · `TurkishCEFR.dmg` (double-click & launch — zero Terminal)**
+            1. Download and double-click `TurkishCEFR.dmg`.
+            2. In the window that opens, drag `TurkishCEFR.app` onto the `Applications` shortcut.
+            3. Open Launchpad → click `TurkishCEFR`. Done.
+
+            **🔵 Option B · `TurkishCEFR-Full.pkg` (guided wizard — everything preinstalled)**
+            1. Download and double-click `TurkishCEFR-Full.pkg`.
+            2. Follow the Welcome → License → Install → Done wizard.
+            3. The installer automatically strips the Gatekeeper quarantine flag,
+               so the app opens cleanly on first launch even on macOS Sequoia.
+
+            **⚪ Option C · `TurkishCEFR.zip` (advanced, manual)**
+            Unzip → drag `TurkishCEFR.app` to `/Applications`.
+            If macOS refuses to open it, run in Terminal:
+            ```
+            xattr -dr com.apple.quarantine /Applications/TurkishCEFR.app
+            ```
