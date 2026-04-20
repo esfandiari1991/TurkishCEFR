@@ -231,7 +231,10 @@ struct DailyChallengeView: View {
     }
 
     static func hint(for tr: String) -> String {
-        let low = tr.lowercased()
+        // Turkish-aware lowercasing so "İ" folds to "i" (not "i\u{0307}"),
+        // keeping the substring checks below consistent with the rest of
+        // the codebase (CorpusStore / ListeningExerciseView).
+        let low = tr.lowercased(with: Locale(identifier: "tr_TR"))
         if low.contains("yor") {
             return "This sentence uses the present continuous suffix -(I)yor (\"is / are doing\"). Notice how it attaches to the verb stem after dropping the infinitive -mak / -mek."
         }

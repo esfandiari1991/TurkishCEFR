@@ -292,6 +292,7 @@ private struct NetworkModeBadge: View {
 
 /// Wrap HeatmapView in a titled pane so it renders nicely as a detail column.
 private struct HeatmapPane: View {
+    @EnvironmentObject private var progress: ProgressStore
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             Text("Activity · Heatmap")
@@ -300,7 +301,9 @@ private struct HeatmapPane: View {
                 .font(DisplayFont.body)
                 .foregroundStyle(.secondary)
                 .lineSpacing(LineHeight.body)
-            HeatmapView()
+            HeatmapView(weeks: 18,
+                        dailyActivity: progress.stats.dailyActivity,
+                        tint: BrandTheme.turquoise)
                 .frame(minHeight: 220)
             Spacer()
         }
