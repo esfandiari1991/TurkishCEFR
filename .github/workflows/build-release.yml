@@ -49,22 +49,34 @@ jobs:
           brew update
           brew install xcodegen
 
+      - name: Fetch offline corpus (Tatoeba + Turkish frequency)
+        run: python3 scripts/fetch_corpus.py
+
       - name: Generate Xcode project
         run: xcodegen generate
 
-      - name: Build app (Release)
+      - name: Build app (Release, universal arm64 + x86_64)
         run: |
           set -o pipefail
           xcodebuild \
             -project TurkishCEFR.xcodeproj \
             -scheme TurkishCEFR \
             -configuration Release \
-            -destination 'platform=macOS' \
+            -destination 'generic/platform=macOS' \
             -derivedDataPath build \
+            ARCHS="arm64 x86_64" \
+            ONLY_ACTIVE_ARCH=NO \
+            VALID_ARCHS="arm64 x86_64" \
             CODE_SIGN_IDENTITY="-" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=YES \
             build
+          # Verify universal binary
+          APP_BIN="$(find build/Build/Products/Release -maxdepth 4 -path '*TurkishCEFR.app/Contents/MacOS/TurkishCEFR' | head -1)"
+          if [ -n "$APP_BIN" ]; then
+            echo "Binary architectures:"
+            lipo -info "$APP_BIN" || file "$APP_BIN"
+          fi
 
       - name: Locate built app
         id: locate
@@ -118,8 +130,15 @@ jobs:
           prerelease: true
           files: dist/TurkishCEFR.zip
           body: |
-            Automated build from the latest commit on `main`.
+            **Universal macOS build (Apple Silicon + Intel)** — requires macOS 14 Sonoma or later.
 
-            Download `TurkishCEFR.zip`, unzip, and move the `TurkishCEFR.app` anywhere (e.g. your `Applications` folder).
+            **How to install:**
+            1. Download `TurkishCEFR.zip`, unzip it.
+            2. Drag `TurkishCEFR.app` into `/Applications`.
+            3. **Open Terminal** and run this one line (removes the Gatekeeper quarantine flag so the app opens cleanly on any Mac, including macOS Sequoia where "right-click → Open" no longer works for ad-hoc-signed apps):
+               ```
+               xattr -dr com.apple.quarantine /Applications/TurkishCEFR.app
+               ```
+            4. Double-click the app.
 
-            On first launch you may see a Gatekeeper warning (the app isn't Apple-notarized). Right-click the app → **Open** → **Open** to bypass it once.
+            *(If you prefer the old right-click flow on macOS Sonoma / Ventura: right-click `TurkishCEFR.app` → **Open** → **Open**. The Terminal command above works everywhere.)*

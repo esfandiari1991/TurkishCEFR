@@ -30,6 +30,12 @@ dist/
 
 # macOS
 .DS_Store
+
+# Offline corpus is generated at CI time by scripts/fetch_corpus.py.
+# A fallback is emitted if the fetch fails, so local builds without network
+# still work.
+TurkishCEFR/Resources/corpus_tr_en.json
+TurkishCEFR/Resources/frequency_tr.json
 .AppleDouble
 .LSOverride
 
