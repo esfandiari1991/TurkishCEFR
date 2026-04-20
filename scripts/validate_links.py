@@ -40,10 +40,24 @@ OEMBED_FMT = (
 
 
 def extract_refs(text: str) -> list[dict]:
-    refs = []
+    """Returns every curated reference, de-duplicated by YouTube ID.
+
+    Several video IDs are intentionally shared between level bundles
+    (e.g. a B2 primary is also used as a C1 alternate). Without this
+    dedup the cron would HTTP-ping the same oEmbed URL multiple times
+    per sweep and a single dead video would be counted 2–3× in the
+    `broken` tally, misleading the maintainer about the real scope of
+    link rot. Keeps first-seen ordering so diffs stay stable.
+    """
+    refs: list[dict] = []
+    seen: set[str] = set()
     for m in ID_PATTERN.finditer(text):
+        vid = m.group(1)
+        if vid in seen:
+            continue
+        seen.add(vid)
         refs.append({
-            "id": m.group(1),
+            "id": vid,
             "title": m.group(2),
             "channel": m.group(3),
         })

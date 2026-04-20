@@ -281,15 +281,26 @@ struct LessonResources {
 
     /// Flat list of every reference in the file — used by the CI cron
     /// validator and the runtime `LinkHealthChecker`.
+    ///
+    /// De-duplicated by `youtubeID`: several video IDs are shared between
+    /// levels (e.g. `iRKOcsB3Pu8` appears in b2 primary, c1 primary, and c2
+    /// alternates). Without the `seen` set the CI cron would ping the same
+    /// URL 3× per sweep and a single dead video would be reported as 3
+    /// broken links, misleading the maintainer.
     static var allReferences: [VideoRef] {
+        var seen = Set<String>()
         var out: [VideoRef] = []
         for bundle in [a1, a2, b1, b2, c1, c2] {
-            out.append(contentsOf: bundle.primary)
-            out.append(contentsOf: bundle.alternates)
+            for ref in bundle.primary + bundle.alternates
+            where seen.insert(ref.youtubeID).inserted {
+                out.append(ref)
+            }
         }
         for (_, bundle) in byLesson {
-            out.append(contentsOf: bundle.primary)
-            out.append(contentsOf: bundle.alternates)
+            for ref in bundle.primary + bundle.alternates
+            where seen.insert(ref.youtubeID).inserted {
+                out.append(ref)
+            }
         }
         return out
     }

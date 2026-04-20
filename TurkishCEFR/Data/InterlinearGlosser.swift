@@ -165,11 +165,28 @@ enum InterlinearGlosser {
         ]
         for (end, feat) in endings where s.hasSuffix(end) {
             let stem = String(s.dropLast(end.count))
-            let lemma = stem + "mak" // best-guess infinitive
+            // Vowel-harmony–aware infinitive: -mek for front-vowel stems
+            // (e, i, ö, ü), -mak for back-vowel stems (a, ı, o, u). Using a
+            // fixed "mak" mis-displays "gelmek" as "gelmak" to the learner,
+            // which is actively harmful in a teaching tool.
+            let lemma = stem + infinitiveSuffix(for: stem)
             let english = quickDictionary[stem]?.english ?? "(verb)"
             return (lemma, english, [feat])
         }
         return nil
+    }
+
+    /// Returns "-mek" for a stem whose last vowel is front (e, i, ö, ü),
+    /// otherwise "-mak". Falls back to "-mak" if no vowel is found, which
+    /// matches the traditional default for most A1 content.
+    private static func infinitiveSuffix(for stem: String) -> String {
+        let frontVowels: Set<Character> = ["e", "i", "ö", "ü"]
+        let backVowels: Set<Character> = ["a", "ı", "o", "u"]
+        for ch in stem.reversed() {
+            if frontVowels.contains(ch) { return "mek" }
+            if backVowels.contains(ch) { return "mak" }
+        }
+        return "mak"
     }
 
     // MARK: - Dictionary
