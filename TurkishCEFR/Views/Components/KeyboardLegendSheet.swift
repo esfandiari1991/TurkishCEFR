@@ -13,8 +13,8 @@ struct KeyboardLegendSheet: View {
             Divider()
             ScrollView {
                 VStack(alignment: .leading, spacing: Spacing.lg) {
-                    ForEach(KeyboardShortcutGroup.all) { group in
-                        group(for: group)
+                    ForEach(KeyboardShortcutGroup.all) { shortcutGroup in
+                        groupRow(for: shortcutGroup)
                     }
                 }
                 .padding(Spacing.xl)
@@ -37,7 +37,7 @@ struct KeyboardLegendSheet: View {
         .padding(Spacing.lg)
     }
 
-    private func group(for g: KeyboardShortcutGroup) -> some View {
+    private func groupRow(for g: KeyboardShortcutGroup) -> some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             Label(g.title, systemImage: g.systemImage)
                 .font(.headline)

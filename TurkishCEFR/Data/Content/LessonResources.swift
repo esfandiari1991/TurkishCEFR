@@ -67,12 +67,12 @@ struct LessonResources {
     /// four alternates, so `LinkHealthChecker` has room to fail over.
     static func generic(for level: CEFRLevel) -> Bundle {
         switch level {
-        case .a1: return .a1
-        case .a2: return .a2
-        case .b1: return .b1
-        case .b2: return .b2
-        case .c1: return .c1
-        case .c2: return .c2
+        case .a1: return Self.a1
+        case .a2: return Self.a2
+        case .b1: return Self.b1
+        case .b2: return Self.b2
+        case .c1: return Self.c1
+        case .c2: return Self.c2
         }
     }
 

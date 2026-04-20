@@ -82,11 +82,10 @@ struct WeeklyRecapView: View {
     }
 
     private var studiedRecentlyCard: some View {
-        SectionCard(tint: BrandTheme.turquoise) {
+        SectionCard(title: "Lessons you touched",
+                    systemImage: "book.fill",
+                    tint: BrandTheme.turquoise) {
             VStack(alignment: .leading, spacing: Spacing.sm) {
-                Label("Lessons you touched", systemImage: "book.fill")
-                    .font(.headline)
-                    .foregroundStyle(BrandTheme.turquoise)
                 if weekEntries.isEmpty {
                     Text("You didn't touch a lesson this week. Open the sidebar and start any A1 topic — it only takes 5 minutes to keep your streak.")
                         .font(DisplayFont.body)
@@ -103,11 +102,10 @@ struct WeeklyRecapView: View {
     }
 
     private var weakestCard: some View {
-        SectionCard(tint: BrandTheme.crimson) {
+        SectionCard(title: "Words you keep forgetting",
+                    systemImage: "exclamationmark.bubble.fill",
+                    tint: BrandTheme.crimson) {
             VStack(alignment: .leading, spacing: Spacing.sm) {
-                Label("Words you keep forgetting", systemImage: "exclamationmark.bubble.fill")
-                    .font(.headline)
-                    .foregroundStyle(BrandTheme.crimson)
                 if weakestCards.isEmpty {
                     Text("Nothing to worry about — your review deck is clean.")
                         .font(DisplayFont.body)
@@ -134,14 +132,14 @@ struct WeeklyRecapView: View {
     }
 
     private var nextStepCard: some View {
-        SectionCard(tint: BrandTheme.gold) {
+        SectionCard(title: "Suggested for next week",
+                    systemImage: "map.fill",
+                    tint: BrandTheme.gold) {
             HStack(alignment: .top, spacing: Spacing.md) {
                 Image(systemName: "map.fill")
                     .font(.system(size: 32, weight: .semibold))
                     .foregroundStyle(BrandTheme.gold)
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Suggested for next week")
-                        .font(.headline)
                     Text(suggestion)
                         .font(DisplayFont.body)
                         .lineSpacing(LineHeight.body)

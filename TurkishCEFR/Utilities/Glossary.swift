@@ -157,7 +157,7 @@ private struct GlossaryPopoverContent: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             HStack(spacing: Spacing.xs) {
-                Image(systemName: "book.closed.fill").foregroundStyle(.accent)
+                Image(systemName: "book.closed.fill").foregroundStyle(Color.accentColor)
                 Text(term.capitalized)
                     .font(.title3.weight(.bold))
             }

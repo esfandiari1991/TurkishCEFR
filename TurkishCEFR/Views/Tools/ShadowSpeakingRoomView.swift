@@ -100,13 +100,13 @@ struct ShadowSpeakingRoomView: View {
                 .buttonStyle(.bordered)
             }
 
-            let words = (pair?.turkish ?? "").split(separator: " ").map(String.init)
+            let words = (pair?.tr ?? "").split(separator: " ").map(String.init)
             WrappingHStack(words: words, highlightIndex: highlightIndex)
                 .padding(Spacing.md)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(RoundedRectangle(cornerRadius: 16).fill(.ultraThinMaterial))
 
-            if let eng = pair?.english {
+            if let eng = pair?.en {
                 Text(eng)
                     .font(.callout)
                     .foregroundStyle(.secondary)
@@ -149,8 +149,8 @@ struct ShadowSpeakingRoomView: View {
             guard let p = pair else { return }
             phase = .listening
             highlightIndex = 0
-            speech.speak(p.turkish, rate: speed.rate)
-            animateHighlight(wordCount: p.turkish.split(separator: " ").count)
+            speech.speak(p.tr, rate: speed.rate)
+            animateHighlight(wordCount: p.tr.split(separator: " ").count)
         } label: {
             Label(
                 phase == .listening ? "Playing…" : "Listen",

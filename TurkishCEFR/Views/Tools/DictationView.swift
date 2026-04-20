@@ -69,7 +69,9 @@ struct DictationView: View {
     @ViewBuilder
     private var card: some View {
         if let pair {
-            SectionCard(tint: BrandTheme.turquoise) {
+            SectionCard(title: "Listen & type",
+                        systemImage: "ear.and.waveform",
+                        tint: BrandTheme.turquoise) {
                 VStack(alignment: .leading, spacing: Spacing.md) {
                     HStack(spacing: Spacing.md) {
                         Button {
