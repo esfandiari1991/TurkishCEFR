@@ -259,6 +259,9 @@ struct ShadowSpeakingRoomView: View {
         pair = corpus.randomSentence(maxLength: 60)
         phase = .idle
         highlightIndex = 0
+        // Rotate the token so any in-flight highlight callbacks from the
+        // previous sentence bail out instead of stomping the fresh one.
+        animationToken = UUID()
     }
 
     private func animateHighlight(wordCount: Int) {
