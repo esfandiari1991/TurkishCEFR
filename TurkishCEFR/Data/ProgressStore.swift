@@ -69,7 +69,7 @@ final class ProgressStore: ObservableObject {
 
     // MARK: - Vocabulary
 
-    func toggleMastered(lessonID: String, word: String) {
+    func toggleMastered(lessonID: String, word: String, translation: String? = nil) {
         var p = self[lessonID]
         let wasMastered = p.vocabularyMastered.contains(word)
         if wasMastered {
@@ -83,6 +83,9 @@ final class ProgressStore: ObservableObject {
             awardXP(XPAward.wordMastered, reason: "New word mastered")
             registerStudySession(awardXP: false)
             checkBadges()
+            if let translation, !translation.isEmpty {
+                SRSStore.shared.enroll(front: word, back: translation, origin: "lesson:\(lessonID)")
+            }
         }
     }
 
@@ -130,6 +133,9 @@ final class ProgressStore: ObservableObject {
         } else {
             stats.correctInARow = 0
         }
+
+        stats.exerciseAttempts += 1
+        if perfect { stats.exercisePerfectCount += 1 }
 
         let amount = alreadyDone ? max(2, xp / 4) : xp
         awardXP(amount, reason: "Exercise completed")
@@ -183,12 +189,20 @@ final class ProgressStore: ObservableObject {
 
     // MARK: - XP & Streaks
 
-    func awardXP(_ amount: Int, reason: String) {
+    /// - Parameter isStudyAction: when `true` the XP also counts towards the
+    ///   daily activity heatmap and adds ~90 s of approximate study time.
+    ///   Pass `false` for rewards that aren't actual study (e.g. badge bonuses).
+    func awardXP(_ amount: Int, reason: String, isStudyAction: Bool = true) {
         guard amount > 0 else { return }
         let oldLevel = stats.level
         stats.totalXP += amount
         let newLevel = stats.level
         lastXPAward = XPAwardEvent(amount: amount, reason: reason)
+        if isStudyAction {
+            let key = ActivityDateKey.key()
+            stats.dailyActivity[key, default: 0] += amount
+            stats.studySeconds += 90
+        }
         if newLevel > oldLevel {
             levelUpEvent = LevelUpEvent(oldLevel: oldLevel, newLevel: newLevel)
             stats.acknowledgedLevel = newLevel
@@ -215,6 +229,7 @@ final class ProgressStore: ObservableObject {
         }
         stats.lastStudyDate = today
         stats.longestStreak = max(stats.longestStreak, stats.streakDays)
+        stats.studyDayCount += 1
         if awardXP { self.awardXP(5, reason: "Daily check-in") }
         save()
         checkBadges()
@@ -231,7 +246,9 @@ final class ProgressStore: ObservableObject {
                 stats.pendingBadgeToasts.append(badge.id)
                 newlyUnlocked.append(badge)
                 if badge.xpReward > 0 {
-                    awardXP(badge.xpReward, reason: "Badge: \(badge.title)")
+                    awardXP(badge.xpReward,
+                            reason: "Badge: \(badge.title)",
+                            isStudyAction: false)
                 }
             }
         }
@@ -341,6 +358,14 @@ final class ProgressStore: ObservableObject {
         if let data = try? JSONEncoder().encode(snapshot) {
             UserDefaults.standard.set(data, forKey: defaultsKey)
         }
+    }
+
+    /// Replaces the current snapshot with one loaded from an imported file and
+    /// persists it immediately so the restore survives app relaunches.
+    func applyImported(lessonProgress: [String: LessonProgress], stats: PlayerStats) {
+        self.lessonProgress = lessonProgress
+        self.stats = stats
+        save()
     }
 
     private struct Snapshot: Codable {

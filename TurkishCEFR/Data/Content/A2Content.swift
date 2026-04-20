@@ -530,6 +530,7 @@ enum A2Content {
                   ex: [("Gelebilirim.", "I can come."),
                        ("Gelebilir misin?", "Can you come?")]),
                 P("Past: gelebildi (he was able to come)",
+                  "Add -DI past after -(y)AbIl",
                   ex: [("Dün gelemedim.", "Yesterday I couldn't come.")]),
                 P("Permission",
                   "'May I' also uses -(y)AbIl + question",
@@ -577,8 +578,8 @@ enum A2Content {
               ant: ["az", "daha az"]),
             V("en", "most", .adverb,
               ex: [("en güzel", "most beautiful · the best")]),
-            V("kadar", "as … as", .postposition, ipa: "/kaˈdaɾ/"),
-            V("gibi", "like", .postposition),
+            V("kadar", "as … as", .preposition, ipa: "/kaˈdaɾ/"),
+            V("gibi", "like", .preposition),
             V("büyük", "big", .adjective, ant: ["küçük"]),
             V("küçük", "small", .adjective)
         ],

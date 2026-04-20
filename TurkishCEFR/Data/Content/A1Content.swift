@@ -172,7 +172,13 @@ enum A1Part1 {
                 VocabularyItem("teşekkür ederim", "thank you"),
                 VocabularyItem("lütfen", "please"),
                 VocabularyItem("iyi geceler", "good night")
-            ]))
+            ])),
+            LSN("a1-greet-ls1", "Merhaba, nasılsın?",
+                "Hello, how are you?",
+                hint: "A common greeting with a question."),
+            LSN("a1-greet-ls2", "Tanıştığımıza memnun oldum.",
+                "Nice to meet you.",
+                hint: "Said when you first meet someone.")
         ]
     )
 
@@ -238,7 +244,11 @@ enum A1Part1 {
                 VocabularyItem("beş", "5", .number),
                 VocabularyItem("on", "10", .number),
                 VocabularyItem("yüz", "100", .number)
-            ]))
+            ])),
+            LSN("a1-num-ls1", "Otuz yaşındayım.",
+                "I am thirty years old."),
+            LSN("a1-num-ls2", "Kırk beş lira.",
+                "Forty-five lira.")
         ]
     )
 

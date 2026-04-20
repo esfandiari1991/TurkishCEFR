@@ -124,7 +124,9 @@ struct VocabularySection: View {
                     VocabCard(item: item,
                               mastered: progress[lesson.id].vocabularyMastered.contains(item.turkish),
                               tint: lesson.level.accentColor) {
-                        progress.toggleMastered(lessonID: lesson.id, word: item.turkish)
+                        progress.toggleMastered(lessonID: lesson.id,
+                                                word: item.turkish,
+                                                translation: item.english)
                     }
                 }
             }
@@ -239,15 +241,7 @@ struct ExerciseSection: View {
     }
 
     private var orderedExercises: [Exercise] {
-        lesson.exercises.sorted { lhs, rhs in orderRank(lhs) < orderRank(rhs) }
-    }
-
-    private func orderRank(_ e: Exercise) -> Int {
-        switch e {
-        case .flashcard: return 0
-        case .multipleChoice: return 1
-        case .fillInBlank: return 2
-        }
+        lesson.exercises.sorted { $0.orderRank < $1.orderRank }
     }
 
     private func isLocked(index: Int) -> Bool {
@@ -316,31 +310,9 @@ private struct ExerciseRow: View {
         case .flashcard(let s): return "\(s.cards.count) card\(s.cards.count == 1 ? "" : "s") · +\(XPAward.flashcardCompleted) XP"
         case .multipleChoice: return "Quick check · up to +\(XPAward.multipleChoicePerfect) XP"
         case .fillInBlank:    return "Write the missing word · up to +\(XPAward.fillInBlankPerfect) XP"
+        case .listening:      return "Listen and type · up to +\(XPAward.listeningPerfect) XP"
         }
     }
 }
 
-// MARK: - SectionCard
-
-struct SectionCard<Content: View>: View {
-    let title: String
-    let systemImage: String
-    let tint: Color
-    @ViewBuilder let content: () -> Content
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 10) {
-                Image(systemName: systemImage)
-                    .foregroundStyle(tint)
-                Text(title)
-                    .font(.title3.weight(.semibold))
-            }
-            content()
-        }
-        .padding(20)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18))
-        .overlay(RoundedRectangle(cornerRadius: 18).stroke(.white.opacity(0.08)))
-        .shadow(color: .black.opacity(0.06), radius: 18, y: 6)
-    }
-}
+// NOTE: SectionCard is defined in Views/Components/Theme.swift.
