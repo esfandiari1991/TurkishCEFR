@@ -14,6 +14,7 @@ struct DictationView: View {
     @State private var pair: CorpusStore.SentencePair?
     @State private var typed: String = ""
     @State private var checked: Bool = false
+    @State private var revealed: Bool = false
     @State private var playsToday: Int = 0
 
     var body: some View {
@@ -133,7 +134,14 @@ struct DictationView: View {
                             .keyboardShortcut(.return, modifiers: [])
                             .disabled(typed.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
 
-                        Button("Reveal answer") { checked = true; typed = "" }
+                        Button("Reveal answer") {
+                            // Tell `feedback(target:)` this was an intentional
+                            // reveal, not a failed attempt — otherwise we would
+                            // show "Close — compare below" and 0% accuracy
+                            // even though the learner never tried.
+                            revealed = true
+                            checked = true
+                        }
                             .buttonStyle(.bordered)
                             .controlSize(.large)
 
@@ -165,21 +173,33 @@ struct DictationView: View {
             target: target.lowercased(with: Locale(identifier: "tr_TR")),
             got: typed.lowercased(with: Locale(identifier: "tr_TR"))
         )
+        let headline: String
+        let headlineColor: Color
+        if revealed {
+            headline = "Answer revealed · Cevap gösterildi"
+            headlineColor = BrandTheme.turquoise
+        } else if comparator.exact {
+            headline = "Perfect! · Mükemmel!"
+            headlineColor = .green
+        } else {
+            headline = "Close — compare below"
+            headlineColor = .orange
+        }
         return VStack(alignment: .leading, spacing: Spacing.xs) {
-            Text(comparator.exact ? "Perfect! · Mükemmel!" : "Close — compare below")
+            Text(headline)
                 .font(.headline)
-                .foregroundStyle(comparator.exact ? .green : .orange)
-            // Colored reconstruction of target
+                .foregroundStyle(headlineColor)
+            // Colored reconstruction of target. In reveal mode we paint every
+            // character green because the intent is "show me the answer", not
+            // "grade my attempt".
             FlowLayout(spacing: 0) {
                 ForEach(Array(target.enumerated()), id: \.offset) { i, ch in
                     Text(String(ch))
                         .font(.system(size: 22, weight: .semibold, design: .rounded))
-                        .foregroundStyle(i < comparator.marks.count
-                                         ? (comparator.marks[i] ? Color.green : Color.red)
-                                         : .primary)
+                        .foregroundStyle(colorForChar(at: i, marks: comparator.marks))
                 }
             }
-            if comparator.similarity < 1 {
+            if !revealed && comparator.similarity < 1 {
                 Text(String(format: "Accuracy: %d%%", Int(comparator.similarity * 100)))
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -196,6 +216,12 @@ struct DictationView: View {
         let marks: [Bool]      // per-char correctness
         let exact: Bool
         let similarity: Double
+    }
+
+    private func colorForChar(at i: Int, marks: [Bool]) -> Color {
+        if revealed { return .green }
+        if i < marks.count { return marks[i] ? .green : .red }
+        return .primary
     }
 
     private func compare(target: String, got: String) -> ComparisonResult {
@@ -221,6 +247,7 @@ struct DictationView: View {
         pair = corpus.randomSentence(maxLength: maxLen)
         typed = ""
         checked = false
+        revealed = false
         playsToday = 0
     }
 }

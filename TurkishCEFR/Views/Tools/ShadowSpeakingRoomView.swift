@@ -32,6 +32,11 @@ struct ShadowSpeakingRoomView: View {
     @State private var phase: Phase = .idle
     @State private var highlightIndex: Int = 0
     @State private var cycleCount: Int = 0
+    /// Bumped every time a new Listen cycle starts so that stale
+    /// `DispatchQueue.main.asyncAfter` callbacks from the previous
+    /// playback can tell they're obsolete and bail out without
+    /// clobbering the current phase or highlight index.
+    @State private var animationToken: UUID = UUID()
 
     var body: some View {
         ScrollView {
@@ -258,13 +263,18 @@ struct ShadowSpeakingRoomView: View {
 
     private func animateHighlight(wordCount: Int) {
         guard wordCount > 0 else { return }
+        // Invalidate any in-flight callbacks from a previous Listen press.
+        let token = UUID()
+        animationToken = token
         let interval = (Double(speed.durationEstimate) / Double(wordCount))
         for i in 0..<wordCount {
             DispatchQueue.main.asyncAfter(deadline: .now() + interval * Double(i)) {
+                guard animationToken == token else { return }
                 highlightIndex = i
             }
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + Double(speed.durationEstimate)) {
+            guard animationToken == token else { return }
             if phase == .listening { phase = .idle }
         }
     }
