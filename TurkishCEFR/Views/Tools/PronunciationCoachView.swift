@@ -231,6 +231,11 @@ final class VoiceRecorder: NSObject, ObservableObject {
 
     private func beginTap() {
         let input = engine.inputNode
+        // Defensive: if a previous engine.start() threw *after* we installed
+        // a tap, the tap would still be attached. Re-calling installTap on a
+        // bus that already has a tap is a fatal API misuse on AVAudioEngine,
+        // so we clear any orphan first.
+        input.removeTap(onBus: 0)
         let format = input.outputFormat(forBus: 0)
         input.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak self] buf, _ in
             guard let self else { return }

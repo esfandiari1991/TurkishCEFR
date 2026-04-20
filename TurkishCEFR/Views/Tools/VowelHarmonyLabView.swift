@@ -279,7 +279,11 @@ struct VowelHarmonyLabView: View {
                 : "Yanlış. Cevap: \(drillPrompt.correct). \(drillPrompt.explanation)",
             picked: choice
         )
-        speech.speak(drillPrompt.stem + drillPrompt.correct)
+        // Strip the leading hyphen from the suffix display string before
+        // speaking — we show "-lar" / "-ı" in the UI for clarity, but TTS
+        // would otherwise pronounce the hyphen as a pause or read it aloud.
+        let spoken = drillPrompt.stem + drillPrompt.correct.replacingOccurrences(of: "-", with: "")
+        speech.speak(spoken)
     }
 
     private func tint(for choice: String) -> Color {
