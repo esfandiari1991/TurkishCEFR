@@ -29,11 +29,24 @@ struct TurkishCEFRApp: App {
                 }
                 .keyboardShortcut("r", modifiers: [.command, .shift])
             }
+            CommandGroup(replacing: .help) {
+                Button("Restart Welcome Tour") {
+                    NotificationCenter.default.post(name: .restartOnboarding, object: nil)
+                }
+                Button("Keyboard Legend") {
+                    NotificationCenter.default.post(name: .showKeyboardLegend, object: nil)
+                }
+                .keyboardShortcut("/", modifiers: .command)
+                Divider()
+                Link("Open Project on GitHub",
+                     destination: URL(string: "https://github.com/esfandiari1991/TurkishCEFR")!)
+            }
         }
 
         Settings {
             SettingsView()
                 .environmentObject(progress)
+                .environmentObject(curriculum)
         }
     }
 
@@ -48,4 +61,6 @@ struct TurkishCEFRApp: App {
 
 extension Notification.Name {
     static let resetLevelProgress = Notification.Name("resetLevelProgress")
+    static let restartOnboarding  = Notification.Name("restartOnboarding")
+    static let showKeyboardLegend = Notification.Name("showKeyboardLegend")
 }

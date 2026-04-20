@@ -9,16 +9,34 @@ import AppKit
 /// Content ▸ System Voice ▸ Manage Voices ▸ Turkish. We pick the highest
 /// quality voice automatically and remember the user's preference if they
 /// override it in the Settings panel.
-final class Speech: ObservableObject {
+@MainActor
+final class Speech: NSObject, ObservableObject {
     static let shared = Speech()
 
     private let synthesizer = AVSpeechSynthesizer()
+
+    /// Whether the synthesizer is currently producing audio. Observable so
+    /// `SpeechStopButton` can appear automatically and disappear when idle.
+    @Published private(set) var isSpeaking: Bool = false
+
+    /// A short, user-visible label describing the current utterance. Empty
+    /// when the synthesizer is idle.
+    @Published private(set) var nowSpeaking: String = ""
+
+    /// Queue of pending utterances when the caller asks `speakAll`. The HUD
+    /// shows how many lines are left.
+    @Published private(set) var queueRemaining: Int = 0
 
     /// User-stored override. Empty string = auto-pick the best Turkish voice.
     static let voiceDefaultsKey = "TurkishCEFR.speech.voiceIdentifier"
     static let rateDefaultsKey  = "TurkishCEFR.speech.rate"
 
-    private init() {}
+    private var pendingQueue: [String] = []
+
+    private override init() {
+        super.init()
+        synthesizer.delegate = self
+    }
 
     // MARK: - Voices
 
@@ -66,18 +84,45 @@ final class Speech: ObservableObject {
 
     // MARK: - Speak
 
+    /// Speak a single utterance, cancelling anything already in flight.
     func speak(_ text: String, rate: Float? = nil) {
+        guard !text.isEmpty else { return }
+        pendingQueue.removeAll()
+        queueRemaining = 0
+        enqueue(text, rate: rate, clearFirst: true)
+    }
+
+    /// Speak every item in order. The HUD stop button cancels the whole queue.
+    func speakAll(_ texts: [String], rate: Float? = nil) {
+        let trimmed = texts.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                           .filter { !$0.isEmpty }
+        guard !trimmed.isEmpty else { return }
+        pendingQueue = Array(trimmed.dropFirst())
+        queueRemaining = pendingQueue.count
+        enqueue(trimmed.first ?? "", rate: rate, clearFirst: true)
+    }
+
+    /// Stop any in-flight speech and clear the queue.
+    func stop() {
+        pendingQueue.removeAll()
+        queueRemaining = 0
+        if synthesizer.isSpeaking { synthesizer.stopSpeaking(at: .immediate) }
+        isSpeaking = false
+        nowSpeaking = ""
+    }
+
+    private func enqueue(_ text: String, rate: Float?, clearFirst: Bool) {
         let utterance = AVSpeechUtterance(string: text)
         utterance.voice = activeVoice
         utterance.rate = rate ?? currentRate
         utterance.pitchMultiplier = 1.0
         utterance.volume = 1.0
-        if synthesizer.isSpeaking { synthesizer.stopSpeaking(at: .immediate) }
+        if clearFirst, synthesizer.isSpeaking {
+            synthesizer.stopSpeaking(at: .immediate)
+        }
+        nowSpeaking = String(text.prefix(80))
+        isSpeaking = true
         synthesizer.speak(utterance)
-    }
-
-    func stop() {
-        if synthesizer.isSpeaking { synthesizer.stopSpeaking(at: .immediate) }
     }
 
     private var currentRate: Float {
@@ -96,6 +141,34 @@ final class Speech: ObservableObject {
         for candidate in urls {
             if let url = URL(string: candidate), NSWorkspace.shared.open(url) { return }
         }
+    }
+}
+
+extension Speech: AVSpeechSynthesizerDelegate {
+    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer,
+                                       didFinish utterance: AVSpeechUtterance) {
+        Task { @MainActor in self.advanceQueue() }
+    }
+    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer,
+                                       didCancel utterance: AVSpeechUtterance) {
+        Task { @MainActor in
+            self.isSpeaking = false
+            self.nowSpeaking = ""
+            self.pendingQueue.removeAll()
+            self.queueRemaining = 0
+        }
+    }
+
+    private func advanceQueue() {
+        if pendingQueue.isEmpty {
+            isSpeaking = false
+            nowSpeaking = ""
+            queueRemaining = 0
+            return
+        }
+        let next = pendingQueue.removeFirst()
+        queueRemaining = pendingQueue.count
+        enqueue(next, rate: nil, clearFirst: false)
     }
 }
 

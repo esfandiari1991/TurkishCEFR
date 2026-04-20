@@ -55,13 +55,27 @@ struct MultipleChoiceQuestion: Identifiable, Hashable, Codable {
     let choices: [String]
     let correctIndex: Int
     let explanation: String?
+    /// Optional per-option rationale. When provided, the learner sees a
+    /// targeted explanation for **every** distractor they pick — including
+    /// the right one — instead of a single verdict. This is what turns a
+    /// pass/fail quiz into a teaching tool: "Why is this wrong?" rather
+    /// than just "Wrong."
+    ///
+    /// If present the length must match `choices.count`.
+    let rationales: [String]?
 
-    init(_ id: String, _ prompt: String, _ choices: [String], correct: Int, explanation: String? = nil) {
+    init(_ id: String,
+         _ prompt: String,
+         _ choices: [String],
+         correct: Int,
+         explanation: String? = nil,
+         rationales: [String]? = nil) {
         self.id = id
         self.prompt = prompt
         self.choices = choices
         self.correctIndex = correct
         self.explanation = explanation
+        self.rationales = rationales
     }
 }
 

@@ -32,8 +32,14 @@ targets:
           - "Resources/**"
       - path: TurkishCEFR/Resources/corpus_tr_en.json
         buildPhase: resources
+        optional: true
       - path: TurkishCEFR/Resources/frequency_tr.json
         buildPhase: resources
+        optional: true
+      - path: TurkishCEFR/Resources/Audio
+        buildPhase: resources
+        type: folder
+        optional: true
     info:
       path: TurkishCEFR/Info.plist
     settings:

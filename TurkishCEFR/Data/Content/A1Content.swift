@@ -101,6 +101,20 @@ enum A1Part1 {
                 correct: 3,
                 explanation: "Eight: a, e, ı, i, o, ö, u, ü."
             )),
+            // Writing quiz — production-style MC with per-option feedback.
+            .multipleChoice(MultipleChoiceQuestion(
+                "a1-alphabet-wq1",
+                "Write 'book' in Turkish. Which spelling is correct?",
+                ["kitap", "kıtap", "kitab", "kittap"],
+                correct: 0,
+                explanation: "Turkish spelling mirrors pronunciation. Every letter is one sound.",
+                rationales: [
+                    "Correct. 'kitap' uses 'i' (front, unrounded) — the word sounds exactly as written.",
+                    "Close, but 'ı' (dotless) is a back vowel; this spelling would be pronounced 'kuh-tap'.",
+                    "The final consonant devoices in writing: Turkish writes 'p', not 'b', at word end — even though it softens to 'b' when a vowel follows (kitabım = my book).",
+                    "Only one 't'. Turkish never doubles a consonant within a root."
+                ]
+            )),
             .flashcard(FlashcardSet(id: "a1-alphabet-fc", cards: [
                 VocabularyItem("harf", "letter"),
                 VocabularyItem("kelime", "word"),
@@ -159,6 +173,20 @@ enum A1Part1 {
                 ["Hoşça kal", "Güle güle", "Günaydın", "İyi geceler"],
                 correct: 1,
                 explanation: "'Güle güle' is said by the one staying to the one leaving."
+            )),
+            // Writing quiz — produce the correct word order.
+            .multipleChoice(MultipleChoiceQuestion(
+                "a1-greet-wq1",
+                "Write 'My name is Ali.' in Turkish. Which sentence is grammatically correct?",
+                ["Benim adım Ali.", "Ben ismim Ali.", "Adım ben Ali.", "Ali benim adı."],
+                correct: 0,
+                explanation: "The Turkish possessive structure 'Benim adım ___' puts the possessor first, then the noun with a 1S.POSS suffix.",
+                rationales: [
+                    "Correct. 'Benim' (my) + 'adım' (my name, 1S.POSS) + name. The possessive suffix -ım marks 'my'.",
+                    "'İsmim' means 'my name' too, but 'ben' is wrong here — you need the genitive 'benim' to show possession.",
+                    "Word order is wrong. Subject/possessor always comes before the possessed noun in Turkish.",
+                    "The possessive is on the wrong word. 'Adı' means 'his/her name', not 'my name'. You need 'adım'."
+                ]
             )),
             .fillInBlank(FillInBlankQuestion(
                 "a1-greet-fb1",
@@ -234,6 +262,20 @@ enum A1Part1 {
                 "a1-num-mc1", "Which number is 47?",
                 ["kırk yedi", "dört yedi", "yedi kırk", "otuz yedi"],
                 correct: 0
+            )),
+            // Writing quiz: produce the correct agreement/ordering.
+            .multipleChoice(MultipleChoiceQuestion(
+                "a1-num-wq1",
+                "Write 'three apples' in Turkish. Which is correct?",
+                ["üç elmalar", "üç elma", "elma üç", "üçler elma"],
+                correct: 1,
+                explanation: "After a number, Turkish keeps the noun singular. Plural suffix -ler/-lar is redundant and ungrammatical.",
+                rationales: [
+                    "Wrong: -lar is unnecessary. Turkish nouns stay SINGULAR after a numeral.",
+                    "Correct. 'üç elma' = 'three apples'. The number already implies plurality; no -lar needed.",
+                    "Word order is wrong. Numerals always come BEFORE the noun in Turkish.",
+                    "You cannot pluralise the number itself here. 'üçler' means 'triplets' / 'threes (as a group)' — it's a noun form, not a counter."
+                ]
             )),
             .fillInBlank(FillInBlankQuestion(
                 "a1-num-fb1", "___ beş = 25",
@@ -314,6 +356,20 @@ enum A1Part1 {
                 "a1-time-mc2", "Which season is 'kış'?",
                 ["spring", "summer", "autumn", "winter"],
                 correct: 3
+            )),
+            // Writing quiz: locative suffix + month name.
+            .multipleChoice(MultipleChoiceQuestion(
+                "a1-time-wq1",
+                "Write 'in June' in Turkish. Which is correct?",
+                ["haziranda", "hazirande", "hazirana", "haziran\u{2019}de"],
+                correct: 0,
+                explanation: "The locative suffix is -DA / -DE, chosen by vowel harmony on the last vowel of the stem.",
+                rationales: [
+                    "Correct. The last vowel of 'haziran' is 'a' (back) → -da. No apostrophe: proper nouns only take an apostrophe in formal writing, and month names don't here.",
+                    "Wrong vowel. 'a' is a back vowel, so the suffix is -da, not -de.",
+                    "That is the dative ('to June'). The locative ('in June') uses -da / -de.",
+                    "Apostrophes separate proper nouns from their suffixes in formal writing (e.g. Ankara’da). Month names do not normally take one."
+                ]
             ))
         ]
     )
@@ -378,7 +434,21 @@ enum A1Part1 {
                 VocabularyItem("baba", "father"),
                 VocabularyItem("kardeş", "sibling"),
                 VocabularyItem("arkadaş", "friend")
-            ]))
+            ])),
+            // Writing quiz: var / yok + possessive suffix.
+            .multipleChoice(MultipleChoiceQuestion(
+                "a1-family-wq1",
+                "Write 'I have a sister.' in Turkish. Which is correct?",
+                ["Bir ablam var.", "Ablam bir var.", "Bir abla var.", "Ben abla var."],
+                correct: 0,
+                explanation: "Turkish expresses possession with the pattern 'NOUN+POSS + var/yok'. The possessive suffix goes on the noun, not a separate pronoun.",
+                rationales: [
+                    "Correct. 'Bir abla-m var' = 'there is a my-sister' = 'I have a sister'. The -m is the 1S possessive.",
+                    "Word order is wrong. 'var' / 'yok' always come at the very end of the clause.",
+                    "Missing the possessive. Without -m this reads 'There is a sister' (generic), not 'I have a sister'.",
+                    "Turkish doesn't use 'ben' as a 'have' verb. Possession lives on the noun, not on a separate subject pronoun."
+                ]
+            ))
         ]
     )
 
@@ -432,7 +502,21 @@ enum A1Part1 {
                 VocabularyItem("mavi", "blue", .adjective),
                 VocabularyItem("beyaz", "white", .adjective),
                 VocabularyItem("siyah", "black", .adjective)
-            ]))
+            ])),
+            // Writing quiz: adjective order + agreement.
+            .multipleChoice(MultipleChoiceQuestion(
+                "a1-col-wq1",
+                "Write 'a red apple' in Turkish. Which is correct?",
+                ["kırmızı bir elma", "bir kırmızı elma", "kırmızılar bir elma", "elma kırmızı bir"],
+                correct: 0,
+                explanation: "Adjectives go BEFORE the noun and never agree in number. The indefinite article 'bir' sits between the adjective and the noun.",
+                rationales: [
+                    "Correct. Adjective + bir + noun is the standard order for 'a red apple'.",
+                    "Almost — but 'bir' conventionally follows the adjective and precedes the noun. 'Bir kırmızı elma' sounds like 'one red apple' (stressing quantity).",
+                    "Adjectives never take the plural suffix in Turkish, even when modifying plural nouns.",
+                    "Turkish is a head-final language: the noun 'elma' comes after its modifiers, not before."
+                ]
+            ))
         ]
     )
 
@@ -494,6 +578,20 @@ enum A1Part1 {
                 "Choose the correct sentence for 'I am a doctor'.",
                 ["Ben doktorsun.", "Ben doktorum.", "Ben doktoruz.", "Ben doktor."],
                 correct: 1
+            )),
+            // Writing quiz: negative copula 'değil' + person suffix.
+            .multipleChoice(MultipleChoiceQuestion(
+                "a1-tobe-wq1",
+                "Write 'I am not a teacher.' in Turkish. Which is correct?",
+                ["Ben öğretmen değilim.", "Ben öğretmenim değil.", "Ben değil öğretmenim.", "Ben öğretmen değil."],
+                correct: 0,
+                explanation: "For negation of 'to be', put 'değil' after the predicate, and attach the person suffix to 'değil' itself — not to the noun.",
+                rationales: [
+                    "Correct. 'değil' takes the 1S copular suffix -im → 'değilim'. The noun stays bare.",
+                    "Don’t put the copular suffix on the noun when negating. The suffix moves to 'değil'.",
+                    "Word order: 'değil' always follows what it is negating.",
+                    "Missing person agreement. Without -im this reads '(he/she) is not a teacher', not 'I am not a teacher'."
+                ]
             ))
         ]
     )
@@ -545,6 +643,20 @@ enum A1Part1 {
                 "a1-poss-fb2", "Onun araba___ kırmızı.",
                 answer: "sı", translation: "His/Her car is red.",
                 hint: "Buffer 's' needed after the final vowel."
+            )),
+            // Writing quiz: 3S possessive with buffer consonant.
+            .multipleChoice(MultipleChoiceQuestion(
+                "a1-poss-wq1",
+                "Write 'his bag' in Turkish. Which is correct?",
+                ["çantası", "çantam", "çantan", "çanta"],
+                correct: 0,
+                explanation: "After a vowel, 3rd-person-singular possessive uses buffer 's'. Final vowel 'a' is back → -ı → 'çantası'.",
+                rationales: [
+                    "Correct. 'çanta' ends in a vowel, so we need the buffer 's' before the suffix: çanta + s + ı = çantası.",
+                    "-m is 1S ('my bag'), not 3S.",
+                    "-n is 2S ('your bag'), not 3S.",
+                    "That’s just 'bag' with no possessive suffix at all."
+                ]
             ))
         ]
     )
@@ -594,6 +706,20 @@ enum A1Part1 {
                 "a1-plural-fb1", "İki köpek___ var.",
                 answer: "", translation: "There are two dogs.",
                 hint: "Numbers + noun: leave it singular."
+            )),
+            // Writing quiz: harmony-correct plural.
+            .multipleChoice(MultipleChoiceQuestion(
+                "a1-plural-wq1",
+                "Write 'cats' in Turkish. Which is correct?",
+                ["kediler", "kedilar", "kedis", "kedi’ler"],
+                correct: 0,
+                explanation: "The last vowel of 'kedi' is 'i' (front) → plural suffix is -ler.",
+                rationales: [
+                    "Correct. Front vowel → -ler. No apostrophe on common nouns.",
+                    "Wrong harmony — 'i' is a front vowel, so it takes -ler, not -lar.",
+                    "Turkish plural is never '-s'. It is always -lar or -ler.",
+                    "Apostrophes separate proper nouns (cities, names) from their suffixes, never common nouns like 'kedi'."
+                ]
             ))
         ]
     )
@@ -644,6 +770,20 @@ enum A1Part1 {
                 "a1-loc-mc1", "Which is correct?",
                 ["okulde", "okulda", "okulta", "okuldi"],
                 correct: 1
+            )),
+            // Writing quiz: proper noun + locative, 'd' vs 't' + apostrophe.
+            .multipleChoice(MultipleChoiceQuestion(
+                "a1-loc-wq1",
+                "Write 'in Ahmet’s (place)' in Turkish. Which is correct?",
+                ["Ahmet’te", "Ahmette", "Ahmet’de", "Ahmetde"],
+                correct: 0,
+                explanation: "Proper nouns take an apostrophe before the suffix. 't' at the end of 'Ahmet' is voiceless, so -de → -te.",
+                rationales: [
+                    "Correct. Proper noun → apostrophe. 't' is voiceless → consonant hardening turns -de into -te.",
+                    "Right suffix but missing the apostrophe that separates proper nouns from their suffixes.",
+                    "Voiceless 't' at the end triggers consonant hardening: -de must become -te.",
+                    "Missing apostrophe AND no consonant hardening."
+                ]
             ))
         ]
     )
@@ -706,6 +846,20 @@ enum A1Part1 {
                 "a1-food-mc1", "'Tavuk' means…",
                 ["fish", "chicken", "meat", "egg"],
                 correct: 1
+            )),
+            // Writing quiz: accusative -(y)i + buffer after vowel.
+            .multipleChoice(MultipleChoiceQuestion(
+                "a1-food-wq1",
+                "Write 'I like tea.' in Turkish. Which is correct?",
+                ["Çayı seviyorum.", "Çay seviyorum.", "Çaya seviyorum.", "Çay seviyoruz."],
+                correct: 0,
+                explanation: "'Sevmek' takes a definite object marked with the accusative. 'Tea' is treated as a definite category → çay + -ı = çayı.",
+                rationales: [
+                    "Correct. Definite object → accusative. Last vowel 'a' is back → -ı.",
+                    "Without accusative, this sounds like 'I like a tea (something)'. For a general preference use the accusative.",
+                    "Çaya is dative (‘to tea’). ‘Sevmek’ requires accusative, not dative.",
+                    "Person suffix is wrong — -uz is 1P ('we'), not 1S ('I')."
+                ]
             ))
         ]
     )
@@ -760,6 +914,20 @@ enum A1Part1 {
             .fillInBlank(FillInBlankQuestion(
                 "a1-cafe-fb1", "Bir çay ___.",
                 answer: "lütfen", translation: "One tea, please."
+            )),
+            // Writing quiz: polite request structure.
+            .multipleChoice(MultipleChoiceQuestion(
+                "a1-cafe-wq1",
+                "Write 'May I have the bill?' politely in Turkish. Which is best?",
+                ["Hesabı alabilir miyim?", "Hesap alabilir miyim?", "Hesabı alıyorum.", "Hesap lazm."],
+                correct: 0,
+                explanation: "'Alabilir miyim?' = 'May I take/have?' is the polite request form. The object 'hesap' takes the accusative → 'hesabı' (also note soft 'p'→'b' between vowels).",
+                rationales: [
+                    "Correct. Accusative + ability suffix + interrogative = polite request. 'p' softens to 'b' between vowels.",
+                    "Missing accusative; in a real café the bill is definite ('the bill'), so it should be 'hesabı'.",
+                    "'Alıyorum' = 'I am taking' — a statement, not a request.",
+                    "Not a grammatical sentence and not polite."
+                ]
             ))
         ]
     )

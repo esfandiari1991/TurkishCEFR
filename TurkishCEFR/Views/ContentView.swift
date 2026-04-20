@@ -1,150 +1,96 @@
 import SwiftUI
 
+/// Root navigation scaffold.
+///
+/// * A three-column `NavigationSplitView` (sidebar → lessons-or-tool → detail)
+///   wraps everything.
+/// * `AppSection` drives the sidebar so the same switch handles levels,
+///   tools, progress tabs and podcasts — no more scattered sheet booleans
+///   drifting out of sync.
+/// * The XP HUD is collapsible / dismissible / draggable (see XPHUD.swift);
+///   its buttons deep-link into Stats and Badges.
+/// * `ConnectionBanner` shows the friendly "Bağlanıyor → Bağlandı" message
+///   while `CorpusStore` warms up in the background.
+/// * `SpeechStopHUD` is an always-pinned Stop button that appears whenever
+///   the speech synthesizer is active (fixes the "Play All has no stop"
+///   complaint).
 struct ContentView: View {
     @EnvironmentObject private var curriculum: CurriculumStore
     @EnvironmentObject private var progress: ProgressStore
     @AppStorage("confettiEnabled") private var confettiEnabled: Bool = true
     @AppStorage("fontScale") private var fontScale: Double = 1.0
 
-    @State private var selectedLevel: CEFRLevel? = .a1
+    @State private var selection: AppSection? = .welcome
     @State private var selectedLesson: Lesson?
     @State private var showBadges: Bool = false
     @State private var showSearch: Bool = false
     @State private var showStats: Bool = false
-    @State private var showDictionary: Bool = false
-    @State private var showConjugator: Bool = false
-    @State private var showReview: Bool = false
-    @State private var showDialogues: Bool = false
-    @State private var showDailyChallenge: Bool = false
+    @State private var showKeyboardLegend: Bool = false
     @State private var confettiTrigger: Bool = false
     @State private var visibleLevelUp: ProgressStore.LevelUpEvent?
     @State private var visibleXPChip: ProgressStore.XPAwardEvent?
     @State private var visibleBadgeToast: Badge?
 
+    @ObservedObject private var onboarding = OnboardingStore.shared
+    @ObservedObject private var dbHealth = DatabaseHealth.shared
+
     var body: some View {
         NavigationSplitView {
-            SidebarView(selection: $selectedLevel)
-                .navigationSplitViewColumnWidth(min: 220, ideal: 240, max: 280)
+            SidebarView(selection: $selection)
         } content: {
-            if let level = selectedLevel {
-                LessonListView(level: level, selection: $selectedLesson)
-                    .navigationSplitViewColumnWidth(min: 300, ideal: 340, max: 420)
-                    .id(level)
-            } else {
-                EmptyMiddleColumn()
-            }
+            middleColumn
+                .navigationSplitViewColumnWidth(min: 300, ideal: 360, max: 440)
         } detail: {
-            Group {
-                if let lesson = selectedLesson {
-                    LessonDetailView(lesson: lesson)
-                        .id(lesson.id)
-                } else if let level = selectedLevel {
-                    LevelOverviewView(level: level, selectedLesson: $selectedLesson)
-                        .id(level)
-                } else {
-                    WelcomeView()
-                }
-            }
+            detailColumn
         }
         .navigationSplitViewStyle(.balanced)
         .safeAreaInset(edge: .top, spacing: 0) {
-            HStack(spacing: 10) {
-                Button { showSearch = true } label: {
-                    Label("Search", systemImage: "magnifyingglass")
-                        .labelStyle(.iconOnly)
-                }
-                .buttonStyle(.borderless)
-                .help("Search lessons (⌘F)")
-                .keyboardShortcut("f", modifiers: .command)
-
-                Button { showDictionary = true } label: {
-                    Label("Dictionary", systemImage: "character.book.closed.fill")
-                        .labelStyle(.iconOnly)
-                }
-                .buttonStyle(.borderless)
-                .help("Offline dictionary (⌘K)")
-                .keyboardShortcut("k", modifiers: .command)
-
-                Button { showConjugator = true } label: {
-                    Label("Conjugator", systemImage: "wand.and.stars")
-                        .labelStyle(.iconOnly)
-                }
-                .buttonStyle(.borderless)
-                .help("Turkish verb conjugator (⌘J)")
-                .keyboardShortcut("j", modifiers: .command)
-
-                Spacer()
-                XPHUD(showBadgesSheet: $showBadges)
-                Spacer()
-
-                Button { showDailyChallenge = true } label: {
-                    Label("Daily Challenge", systemImage: "flame.fill")
-                        .labelStyle(.iconOnly)
-                }
-                .buttonStyle(.borderless)
-                .help("Daily challenge (⌘T)")
-                .keyboardShortcut("t", modifiers: .command)
-
-                Button { showReview = true } label: {
-                    Label("Review", systemImage: "brain.head.profile")
-                        .labelStyle(.iconOnly)
-                }
-                .buttonStyle(.borderless)
-                .help("Spaced-repetition review (⌘R)")
-                .keyboardShortcut("r", modifiers: .command)
-
-                Button { showDialogues = true } label: {
-                    Label("Phrasebook", systemImage: "bubble.left.and.bubble.right.fill")
-                        .labelStyle(.iconOnly)
-                }
-                .buttonStyle(.borderless)
-                .help("Situational dialogues (⌘P)")
-                .keyboardShortcut("p", modifiers: .command)
-
-                Button { showStats = true } label: {
-                    Label("Stats", systemImage: "chart.bar.xaxis.ascending")
-                        .labelStyle(.iconOnly)
-                }
-                .buttonStyle(.borderless)
-                .help("Open stats dashboard (⌘D)")
-                .keyboardShortcut("d", modifiers: .command)
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 8)
+            topBar
         }
-        .overlay(alignment: .top) { toastStack.padding(.top, 68) }
+        .overlay(alignment: .top) {
+            VStack(spacing: Spacing.xs) {
+                ConnectionBanner()
+                toastStack
+            }
+            .padding(.top, 74)
+        }
+        .overlay(alignment: .bottom) {
+            SpeechStopHUD().padding(Spacing.md)
+        }
         .overlay {
             if confettiEnabled {
                 ConfettiView(isActive: confettiTrigger)
                     .allowsHitTesting(false)
             }
         }
+        .overlay {
+            if onboarding.isShowing {
+                OnboardingView()
+                    .transition(.opacity.combined(with: .scale(scale: 0.98)))
+                    .zIndex(10)
+            }
+        }
+        .animation(.spring(response: 0.45, dampingFraction: 0.82),
+                   value: onboarding.isShowing)
         .environment(\.sizeCategory, sizeCategory(for: fontScale))
         .sheet(isPresented: $showBadges) { BadgeWall() }
+        .sheet(isPresented: $showKeyboardLegend) { KeyboardLegendSheet() }
         .sheet(isPresented: $showSearch) {
-            LessonSearchView(selectedLevel: $selectedLevel,
+            // Lesson search uses the old level/lesson binding model, so we
+            // adapt it here on the fly.
+            LessonSearchView(selectedLevel: levelBinding,
                              selectedLesson: $selectedLesson)
         }
         .sheet(isPresented: $showStats) { StatsDashboardView() }
-        .sheet(isPresented: $showDictionary) { DictionaryView() }
-        .sheet(isPresented: $showConjugator) { ConjugatorView() }
-        .sheet(isPresented: $showReview) { ReviewView() }
-        .sheet(isPresented: $showDialogues) { DialoguesView() }
-        .sheet(isPresented: $showDailyChallenge) { DailyChallengeView() }
-        .onChange(of: selectedLevel) { _, _ in
+        .onChange(of: selection) { _, _ in
+            // Clearing the lesson when the primary section changes keeps the
+            // detail pane from showing a stale lesson for a different level.
             selectedLesson = nil
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .resetLevelProgress)) { _ in
-            if let level = selectedLevel {
-                progress.resetLevel(level, lessons: curriculum.lessons(for: level))
-            }
         }
         .onChange(of: progress.levelUpEvent) { _, newEvent in
             guard let event = newEvent else { return }
             visibleLevelUp = event
-            if confettiEnabled {
-                confettiTrigger.toggle()
-            }
+            if confettiEnabled { confettiTrigger.toggle() }
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.8) {
                 withAnimation { visibleLevelUp = nil }
             }
@@ -159,10 +105,134 @@ struct ContentView: View {
         .onChange(of: progress.stats.pendingBadgeToasts) { _, _ in
             popNextBadgeIfNeeded()
         }
+        .task {
+            await warmUpStores()
+            await dbHealth.runAll(curriculum: curriculum)
+        }
         .onAppear {
             _ = progress.checkBadges(allLessons: curriculum.allLessons)
             popNextBadgeIfNeeded()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .showKeyboardLegend)) { _ in
+            showKeyboardLegend = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .restartOnboarding)) { _ in
+            onboarding.restart()
+        }
+    }
+
+    // MARK: - Top bar (search + HUD)
+
+    private var topBar: some View {
+        HStack(spacing: Spacing.sm) {
+            Button { showSearch = true } label: {
+                Label("Search", systemImage: "magnifyingglass")
+                    .labelStyle(.iconOnly)
+                    .font(.system(size: IconSize.body))
+            }
+            .buttonStyle(.borderless)
+            .help("Search lessons (⌘F)")
+            .keyboardShortcut("f", modifiers: .command)
+
+            NetworkModeBadge()
+
+            Spacer()
+
+            XPHUD(showBadgesSheet: $showBadges,
+                  openStats: { showStats = true },
+                  openStreak: { showStats = true })
+
+            Spacer()
+
+            Button { showStats = true } label: {
+                Label("Stats", systemImage: "chart.bar.xaxis.ascending")
+                    .labelStyle(.iconOnly)
+                    .font(.system(size: IconSize.body))
+            }
+            .buttonStyle(.borderless)
+            .help("Open stats dashboard (⌘D)")
+            .keyboardShortcut("d", modifiers: .command)
+        }
+        .padding(.horizontal, Spacing.md)
+        .padding(.top, Spacing.xs)
+        .padding(.bottom, Spacing.xxs)
+    }
+
+    // MARK: - Middle column
+
+    @ViewBuilder
+    private var middleColumn: some View {
+        switch selection {
+        case .level(let level):
+            LessonListView(level: level, selection: $selectedLesson).id(level)
+        case .lesson(let id):
+            if let l = curriculum.lesson(id: id) {
+                LessonListView(level: l.level, selection: $selectedLesson).id(l.level)
+            } else {
+                EmptyMiddleColumn()
+            }
+        default:
+            EmptyMiddleColumn()
+        }
+    }
+
+    // MARK: - Detail column
+
+    @ViewBuilder
+    private var detailColumn: some View {
+        switch selection {
+        case .none, .some(.welcome):
+            WelcomeView()
+        case .level(let level):
+            if let lesson = selectedLesson {
+                LessonDetailView(lesson: lesson).id(lesson.id)
+            } else {
+                LevelOverviewView(level: level, selectedLesson: $selectedLesson).id(level)
+            }
+        case .lesson(let id):
+            if let lesson = curriculum.lesson(id: id) {
+                LessonDetailView(lesson: lesson).id(lesson.id)
+            } else {
+                WelcomeView()
+            }
+        case .tool(let tool):
+            switch tool {
+            case .dictionary:    DictionaryView()
+            case .conjugator:    ConjugatorView()
+            case .review:        ReviewView()
+            case .daily:         DailyChallengeView()
+            case .phrasebook:    DialoguesView()
+            case .dictation:     DictationView()
+            case .gloss:         InterlinearGlossView()
+            case .pronunciation: PronunciationCoachView()
+            case .journal:       StudyJournalView()
+            case .recap:         WeeklyRecapView()
+            case .harmony:       VowelHarmonyLabView()
+            case .shadow:        ShadowSpeakingRoomView()
+            }
+        case .podcasts:
+            PodcastsView()
+        case .progress(let tab):
+            switch tab {
+            case .stats:   StatsDashboardView()
+            case .heatmap: HeatmapPane()
+            case .badges:  BadgeWall()
+            }
+        }
+    }
+
+    // MARK: - Helpers
+
+    private var levelBinding: Binding<CEFRLevel?> {
+        Binding(
+            get: {
+                if case .level(let lvl) = selection { return lvl }
+                return nil
+            },
+            set: { newValue in
+                if let v = newValue { selection = .level(v) }
+            }
+        )
     }
 
     private func sizeCategory(for scale: Double) -> ContentSizeCategory {
@@ -204,27 +274,92 @@ struct ContentView: View {
             }
         }
     }
+
+    /// Warms up the heavy stores on a background task so the first paint of
+    /// the UI is instant. Shows the user a professional banner when the
+    /// corpus is ready.
+    private func warmUpStores() async {
+        await MainActor.run {
+            ConnectionCenter.shared.beginLoading("Unpacking corpus + dictionary…")
+        }
+        // Allow the first paint to settle before we touch the corpus, which
+        // keeps launch feeling instant even on older Intel Macs.
+        try? await Task.sleep(nanoseconds: 180_000_000)
+        let pairs = await MainActor.run { CorpusStore.shared.pairs.count }
+        let words = await MainActor.run { CorpusStore.shared.frequency.count }
+        await MainActor.run {
+            ConnectionCenter.shared.finishLoading(
+                summary: "\(pairs.formatted()) sentences · \(words.formatted()) words · fully offline"
+            )
+        }
+    }
+}
+
+// MARK: - Small adapters
+
+private struct NetworkModeBadge: View {
+    @ObservedObject private var network = NetworkModeStore.shared
+    var body: some View {
+        Button {
+            network.toggle()
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: network.mode.systemImage)
+                Text(network.mode.title)
+                    .font(.caption.weight(.semibold))
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, 4)
+            .background(Capsule().fill(network.mode.tint.opacity(0.85)))
+        }
+        .buttonStyle(.plain)
+        .help(network.mode.description)
+    }
+}
+
+/// Wrap HeatmapView in a titled pane so it renders nicely as a detail column.
+private struct HeatmapPane: View {
+    @EnvironmentObject private var progress: ProgressStore
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            Text("Activity · Heatmap")
+                .displayTitle()
+            Text("Each cell represents one day. Darker squares = more study sessions. Hover a cell to see the date.")
+                .font(DisplayFont.body)
+                .foregroundStyle(.secondary)
+                .lineSpacing(LineHeight.body)
+            HeatmapView(weeks: 18,
+                        dailyActivity: progress.stats.dailyActivity,
+                        tint: BrandTheme.turquoise)
+                .frame(minHeight: 220)
+            Spacer()
+        }
+        .padding(Spacing.xl)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
 }
 
 struct WelcomeView: View {
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: Spacing.md) {
             Image(systemName: "book.pages.fill")
-                .font(.system(size: 72))
+                .font(.system(size: IconSize.displayHero))
                 .foregroundStyle(.linearGradient(
-                    colors: [.red, .orange],
+                    colors: [BrandTheme.crimson, BrandTheme.gold],
                     startPoint: .top, endPoint: .bottom
                 ))
             Text("Türkçe'ye Hoş Geldiniz")
-                .font(.system(size: 34, weight: .semibold, design: .serif))
-            Text("Welcome to Turkish — choose a CEFR level from the sidebar to begin.")
+                .turkishDisplayTitle()
+            Text("Welcome to Turkish. Choose a CEFR level from the sidebar to begin — or jump into Daily Challenge, the Dictionary, or one of the 20+ curated podcasts.")
                 .font(.title3)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
-                .frame(maxWidth: 520)
+                .lineSpacing(LineHeight.body)
+                .frame(maxWidth: 620)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(40)
+        .padding(Spacing.xxl)
         .background(GradientBackground())
     }
 }
@@ -232,9 +367,9 @@ struct WelcomeView: View {
 struct EmptyMiddleColumn: View {
     var body: some View {
         ContentUnavailableView(
-            "Pick a level",
+            "Pick a level or a tool",
             systemImage: "sidebar.left",
-            description: Text("Select a CEFR level on the left to see its lessons.")
+            description: Text("Select a CEFR level, a Toolkit entry, or a Progress tab from the sidebar on the left.")
         )
     }
 }
@@ -243,5 +378,5 @@ struct EmptyMiddleColumn: View {
     ContentView()
         .environmentObject(CurriculumStore())
         .environmentObject(ProgressStore())
-        .frame(width: 1200, height: 800)
+        .frame(width: 1280, height: 820)
 }
