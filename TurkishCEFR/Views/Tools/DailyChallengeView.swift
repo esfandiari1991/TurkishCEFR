@@ -173,6 +173,7 @@ struct DailyChallengeView: View {
                         attempts.removeAll()
                         answer = ""
                         revealed = false
+                        completed = false
                     }
                     .buttonStyle(.bordered)
                     Spacer()

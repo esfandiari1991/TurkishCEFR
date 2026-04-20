@@ -105,14 +105,9 @@ struct DialoguesView: View {
     }
 
     private func playAll() {
-        var delay: Double = 0
-        for line in selected.lines {
-            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-                Speech.shared.speak(line.tr)
-                playingLineID = line.id
-            }
-            // Approximate 0.09s per char plus a gap between speakers.
-            delay += min(4.0, Double(line.tr.count) * 0.09 + 0.6)
-        }
+        // Use the synthesizer's built-in queue so each line plays to
+        // completion instead of being cut off by the next asyncAfter tick.
+        Speech.shared.speakAll(selected.lines.map(\.tr))
+        playingLineID = selected.lines.first?.id
     }
 }
