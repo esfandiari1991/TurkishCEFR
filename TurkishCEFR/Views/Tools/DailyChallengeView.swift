@@ -268,12 +268,14 @@ struct DailyChallengeView: View {
         }
         if given == want {
             attempts.append(Attempt(text: answer, verdict: .correct))
-            if !completed {
+            // Re-check UserDefaults so "Another round" can't farm bonus XP on
+            // the same deterministic sentence — XP fires at most once per day.
+            if !completed && !Self.alreadyDoneTodayFromDefaults() {
                 UserDefaults.standard.set(ActivityDateKey.key(), forKey: "dailyChallenge.last")
                 progress.awardXP(30, reason: "Daily challenge")
                 SRSStore.shared.enroll(front: p.tr, back: p.en, origin: "daily")
-                completed = true
             }
+            completed = true
         } else if given.count >= 3 && (given.contains(want) || want.contains(given)) {
             attempts.append(Attempt(text: answer, verdict: .close))
             revealed = true
