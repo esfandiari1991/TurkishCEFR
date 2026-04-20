@@ -3,12 +3,15 @@ import AVFoundation
 
 struct SettingsView: View {
     @EnvironmentObject private var progress: ProgressStore
+    @EnvironmentObject private var curriculum: CurriculumStore
     @AppStorage("speechRate") private var speechRate: Double = 0.48
     @AppStorage("preferredAppearance") private var appearance: String = "system"
     @AppStorage(Speech.voiceDefaultsKey) private var voiceIdentifier: String = ""
     @AppStorage("fontScale") private var fontScale: Double = 1.0
     @AppStorage("confettiEnabled") private var confettiEnabled: Bool = true
     @AppStorage("reduceMotion") private var reduceMotion: Bool = false
+
+    @ObservedObject private var dbHealth = DatabaseHealth.shared
 
     @State private var voices: [AVSpeechSynthesisVoice] = []
     @State private var confirmingReset: Bool = false
@@ -255,6 +258,45 @@ struct SettingsView: View {
                     .font(.caption).foregroundStyle(.secondary)
             }
 
+            Section("Integrity · Data self-check") {
+                HStack {
+                    integrityIcon(for: dbHealth.overall)
+                    Text(integrityHeadline)
+                        .font(.headline)
+                    Spacer()
+                    Button {
+                        Task { await dbHealth.runAll(curriculum: curriculum) }
+                    } label: {
+                        Label("Re-check", systemImage: "arrow.clockwise")
+                    }
+                }
+                if dbHealth.reports.isEmpty {
+                    Text("Click Re-check to run the full self-diagnosis. This scans your local curriculum, offline corpus, progress and settings files.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(dbHealth.reports) { report in
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                integrityIcon(for: report.status)
+                                Text(report.store).font(.subheadline.weight(.semibold))
+                                Spacer()
+                                if report.count > 0 {
+                                    Text("\(report.count)")
+                                        .font(.caption.monospacedDigit())
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                            Text(report.message)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .padding(.vertical, 2)
+                    }
+                }
+            }
+
             Section("Danger zone") {
                 Button(role: .destructive) {
                     confirmingReset = true
@@ -273,5 +315,30 @@ struct SettingsView: View {
             }
         }
         .padding(20)
+    }
+
+    // MARK: - Integrity helpers
+
+    private var integrityHeadline: String {
+        switch dbHealth.overall {
+        case .healthy: return "All systems healthy"
+        case .warning: return "Minor issues detected"
+        case .broken:  return "Action required"
+        case .pending: return "Self-check not run yet"
+        }
+    }
+
+    @ViewBuilder
+    private func integrityIcon(for status: DatabaseHealth.Status) -> some View {
+        switch status {
+        case .healthy:
+            Image(systemName: "checkmark.seal.fill").foregroundStyle(.green)
+        case .warning:
+            Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+        case .broken:
+            Image(systemName: "xmark.octagon.fill").foregroundStyle(.red)
+        case .pending:
+            Image(systemName: "hourglass").foregroundStyle(.secondary)
+        }
     }
 }

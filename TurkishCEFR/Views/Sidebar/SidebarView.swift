@@ -36,7 +36,7 @@ struct SidebarView: View {
             }
 
             Section {
-                ForEach(AppSection.Tool.allCases) { tool in
+                ForEach(AppSection.Tool.classicTools) { tool in
                     NavigationLink(value: AppSection.tool(tool)) {
                         ToolRow(tool: tool)
                     }
@@ -49,6 +49,16 @@ struct SidebarView: View {
                 }
             } header: {
                 sectionHeader("Toolkit", systemImage: "hammer.fill")
+            }
+
+            Section {
+                ForEach(AppSection.Tool.practiceTools) { tool in
+                    NavigationLink(value: AppSection.tool(tool)) {
+                        ToolRow(tool: tool)
+                    }
+                }
+            } header: {
+                sectionHeader("Practice & Reflect", systemImage: "sparkles")
             }
 
             Section {

@@ -26,6 +26,12 @@
     <string>$(MACOSX_DEPLOYMENT_TARGET)</string>
     <key>NSHumanReadableCopyright</key>
     <string>Copyright © 2026 Ali Esfandiari Rad. All rights reserved.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>TurkishCEFR needs microphone access only when you use the Pronunciation Coach to compare your voice to the native Turkish sample. Recordings stay on this Mac and are never uploaded.</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>Turkish speech recognition is used locally to score your pronunciation accuracy.</string>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>TurkishCEFR uses system speech services (Yelda Premium Turkish voice) to play back dialogues aloud.</string>
     <key>NSMainStoryboardFile</key>
     <string></string>
     <key>NSSupportsAutomaticTermination</key>

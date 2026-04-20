@@ -110,6 +110,9 @@ final class CorpusStore: ObservableObject {
 
     // MARK: - Stats
 
+    var sentenceCount: Int { pairs.count }
+    var wordCount: Int { frequency.count }
+
     var stats: String {
         let pairsK = Double(pairs.count) / 1000
         let wordsK = Double(frequency.count) / 1000
