@@ -127,9 +127,16 @@ final class DatabaseHealth: ObservableObject {
     }
 
     private func checkSettings() -> Report {
-        // Sanity-check user preferences don't have impossible values.
+        // Sanity-check user preferences don't have impossible values. We
+        // only flag a range violation when the key has actually been
+        // written by the Settings UI — `UserDefaults.double(forKey:)`
+        // returns 0.0 for unset keys, which would otherwise silently
+        // pass the bounds test. The valid range (0.3…0.7) mirrors the
+        // slider in SettingsView so any value outside it indicates a
+        // corrupted or hand-edited plist.
+        let hasRate = UserDefaults.standard.object(forKey: "speechRate") != nil
         let rate = UserDefaults.standard.double(forKey: "speechRate")
-        if rate < 0 || rate > 1 {
+        if hasRate && (rate < 0.3 || rate > 0.7) {
             return .init(store: "Settings",
                          status: .warning,
                          message: "Speech rate out of range (\(rate)). Reset to default to fix.",

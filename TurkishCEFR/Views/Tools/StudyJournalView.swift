@@ -124,11 +124,37 @@ struct StudyJournalView: View {
 
     @ViewBuilder
     private func note(for entry: StudyJournalStore.Entry) -> some View {
+        // Route the binding through the live store by day key. Earlier
+        // versions read `entry.note` from the captured @State selection,
+        // which was a struct copy and went stale on every published
+        // update — so typing a keystroke triggered save → re-render →
+        // revert. Looking the entry up by its immutable day key each
+        // render always reads the current value.
+        JournalNoteEditor(dayKey: entry.dayKey)
+    }
+}
+
+/// Isolated sub-view that owns its own bind-to-store state so editing
+/// the note feels instantaneous without losing characters to a
+/// save/render cycle.
+private struct JournalNoteEditor: View {
+    let dayKey: String
+    @ObservedObject private var store = StudyJournalStore.shared
+
+    private var currentNote: String {
+        store.entries.first(where: { $0.dayKey == dayKey })?.note ?? ""
+    }
+
+    var body: some View {
         let binding = Binding<String>(
-            get: { entry.note },
-            set: { StudyJournalStore.shared.setNote($0, for: entry.date) }
+            get: { currentNote },
+            set: { newValue in
+                if let date = ISO8601DateFormatter.dayKeyFormatter.date(from: dayKey) {
+                    store.setNote(newValue, for: date)
+                }
+            }
         )
-        VStack(alignment: .leading, spacing: Spacing.xs) {
+        return VStack(alignment: .leading, spacing: Spacing.xs) {
             HStack {
                 Text("Your note")
                     .font(.headline)
