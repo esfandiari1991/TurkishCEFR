@@ -276,7 +276,7 @@ struct DailyChallengeView: View {
                 SRSStore.shared.enroll(front: p.tr, back: p.en, origin: "daily")
             }
             completed = true
-        } else if given.count >= 3 && (given.contains(want) || want.contains(given)) {
+        } else if Self.wordOverlap(given, want) >= 0.6 {
             attempts.append(Attempt(text: answer, verdict: .close))
             revealed = true
         } else {
@@ -284,6 +284,22 @@ struct DailyChallengeView: View {
             revealed = true
         }
         answer = ""
+    }
+
+    /// Jaccard word-overlap ratio. "close" only fires when the learner and
+    /// the expected answer share at least 60% of their content words —
+    /// prevents typing a single common token like "from" from registering
+    /// as a near-miss on a long sentence.
+    static func wordOverlap(_ a: String, _ b: String) -> Double {
+        let tokens: (String) -> Set<String> = { s in
+            Set(s.split(whereSeparator: { !$0.isLetter && !$0.isNumber }).map(String.init))
+                .filter { !$0.isEmpty }
+        }
+        let ta = tokens(a), tb = tokens(b)
+        guard !ta.isEmpty, !tb.isEmpty else { return 0 }
+        let inter = ta.intersection(tb).count
+        let union = ta.union(tb).count
+        return union == 0 ? 0 : Double(inter) / Double(union)
     }
 
     private func normalize(_ s: String) -> String {
