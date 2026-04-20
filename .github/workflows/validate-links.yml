@@ -96,6 +96,9 @@ jobs:
               });
             }
 
-      - name: Re-raise validator exit code
-        if: steps.run.outcome == 'failure'
+      - name: Re-raise validator exit code on scheduled runs
+        # PR and workflow_dispatch runs are advisory only — link rot
+        # should never block a code change. The weekly cron remains
+        # authoritative and keeps the repo's curated list honest.
+        if: steps.run.outcome == 'failure' && github.event_name == 'schedule'
         run: exit 1

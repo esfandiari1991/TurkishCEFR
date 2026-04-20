@@ -23,7 +23,7 @@ mkdir -p "$STAGING"
 # Copy the app into the staging dir and add an alias to /Applications
 # so the classic drag-to-install experience works without extra clicks.
 ditto "$APP_PATH" "$STAGING/TurkishCEFR.app"
-ln -s /Applications "$STAGING/ Applications"
+ln -s /Applications "$STAGING/Applications"
 
 # create-dmg is nicer-looking but not installed by default on every
 # runner; we fall back to plain `hdiutil` which produces a clean,
