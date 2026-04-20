@@ -89,10 +89,13 @@ enum InterlinearGlosser {
     // MARK: - Heuristic peelers
 
     private static func peelCopula(_ s: String) -> (String, String)? {
+        // Longest forms first — the 2P copula ends in -sInIz and would be
+        // shadowed by the 2S copula -sIn otherwise (e.g. "öğrencisiniz"
+        // would be mis-tagged as 2S "öğrencisin"+iz).
         let map: [(String, String)] = [
+            ("sınız", "COP.2P"), ("sunuz", "COP.2P"),
             ("yim", "COP.1S"), ("yız", "COP.1P"), ("yum", "COP.1S"), ("yuz", "COP.1P"),
             ("sın", "COP.2S"), ("sun", "COP.2S"), ("sin", "COP.2S"),
-            ("sınız", "COP.2P"), ("sunuz", "COP.2P"),
             ("ydi", "PAST.COP"), ("ydı", "PAST.COP"), ("ydu", "PAST.COP"), ("ydü", "PAST.COP"),
         ]
         for (suf, tag) in map where s.hasSuffix(suf) {
@@ -102,17 +105,26 @@ enum InterlinearGlosser {
     }
 
     private static func peelCase(_ s: String) -> (String, String)? {
+        // Strict longest-suffix-first ordering. `hasSuffix` short-circuits
+        // on the first hit, so any shorter case marker listed above a
+        // longer one would shadow it. Two classes of bugs this guards
+        // against:
+        //   • "evde" (at home, LOC) would match DAT "e" if DAT came first.
+        //   • "evinin" (of his house, GEN) would match 2S.POSS "in" if
+        //     the 3-char GEN came after the 2-char one.
         let map: [(String, String)] = [
-            ("yi", "ACC"), ("yı", "ACC"), ("yu", "ACC"), ("yü", "ACC"),
-            ("i", "ACC"), ("ı", "ACC"), ("u", "ACC"), ("ü", "ACC"),
-            ("ya", "DAT"), ("ye", "DAT"), ("a", "DAT"), ("e", "DAT"),
-            ("da", "LOC"), ("de", "LOC"), ("ta", "LOC"), ("te", "LOC"),
+            // 3-char suffixes first (ABL, long GEN).
             ("dan", "ABL"), ("den", "ABL"), ("tan", "ABL"), ("ten", "ABL"),
-            // 3-character genitives MUST come before the 2-character ones —
-            // otherwise "evinin" (of his/her house) greedy-matches "in" and
-            // we'd mis-tag it as 2S.POSS ("your house") in the next peel.
             ("nın", "GEN"), ("nin", "GEN"), ("nun", "GEN"), ("nün", "GEN"),
+            // 2-char suffixes.
+            ("yi", "ACC"), ("yı", "ACC"), ("yu", "ACC"), ("yü", "ACC"),
+            ("ya", "DAT"), ("ye", "DAT"),
+            ("da", "LOC"), ("de", "LOC"), ("ta", "LOC"), ("te", "LOC"),
             ("ın", "GEN"), ("in", "GEN"), ("un", "GEN"), ("ün", "GEN"),
+            // 1-char suffixes last — these only apply when nothing above
+            // matched (protecting LOC/DAT polysemy).
+            ("i", "ACC"), ("ı", "ACC"), ("u", "ACC"), ("ü", "ACC"),
+            ("a", "DAT"), ("e", "DAT"),
         ]
         for (suf, tag) in map where s.count > suf.count + 1 && s.hasSuffix(suf) {
             return (String(s.dropLast(suf.count)), tag)
@@ -121,12 +133,16 @@ enum InterlinearGlosser {
     }
 
     private static func peelPossessive(_ s: String) -> (String, String)? {
+        // Longest first for the same reason as peelCase. Specifically the
+        // 3S.POSS "sI" buffer-consonant variant (arabası ← araba) must
+        // outrank the bare "I" form, otherwise "arabası" peels to stem
+        // "arabas" instead of "araba" and the dictionary lookup fails.
         let map: [(String, String)] = [
+            ("ımız", "1P.POSS"), ("imiz", "1P.POSS"), ("umuz", "1P.POSS"), ("ümüz", "1P.POSS"),
+            ("sı", "3S.POSS"), ("si", "3S.POSS"), ("su", "3S.POSS"), ("sü", "3S.POSS"),
             ("ım", "1S.POSS"), ("im", "1S.POSS"), ("um", "1S.POSS"), ("üm", "1S.POSS"),
             ("ın", "2S.POSS"), ("in", "2S.POSS"), ("un", "2S.POSS"), ("ün", "2S.POSS"),
             ("ı", "3S.POSS"), ("i", "3S.POSS"), ("u", "3S.POSS"), ("ü", "3S.POSS"),
-            ("sı", "3S.POSS"), ("si", "3S.POSS"), ("su", "3S.POSS"), ("sü", "3S.POSS"),
-            ("ımız", "1P.POSS"), ("imiz", "1P.POSS"), ("umuz", "1P.POSS"), ("ümüz", "1P.POSS"),
         ]
         for (suf, tag) in map where s.count > suf.count + 1 && s.hasSuffix(suf) {
             return (String(s.dropLast(suf.count)), tag)
